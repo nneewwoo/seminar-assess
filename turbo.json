@@ -1,0 +1,28 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "dev": {
+      "persistent": true,
+      "cache": false,
+      "dependsOn": ["^db:generate"]
+    },
+    "build": {
+      "inputs": [".env*"],
+      "outputs": ["dist/**"],
+      "dependsOn": ["package"]
+    },
+    "build:api": {
+      "dependsOn": ["^db:generate"],
+      "outputs": ["apps/api/dist/**"],
+      "cache": false
+    },
+    "package": {
+      "dependsOn": ["^package"],
+      "outputs": ["dist/**"]
+    },
+    "db:generate": {
+      "cache": false
+    }
+  }
+}

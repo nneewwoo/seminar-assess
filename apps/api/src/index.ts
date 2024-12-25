@@ -1,12 +1,15 @@
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 
-import { db } from '@seminar-assess/db'
-import { users } from '@seminar-assess/db/schema'
+import Bun from 'bun'
 
 const app = new Hono()
 
 app.use('*', logger())
+
+app.get('/', ({ json }) => {
+  return json({ message: 'Hello world!' })
+})
 
 app.get('/health', ({ json }) => {
   return json({
@@ -16,18 +19,12 @@ app.get('/health', ({ json }) => {
   })
 })
 
-app.get('/testdb', async ({ json }) => {
-  const result = await db.select({ id: users.id }).from(users)
-
-  return json(result)
-})
-
-app.onError((err, c) => {
+app.onError((err, { json }) => {
   console.error(`[Error] ${err.message}`)
   console.error(err.stack)
 
-  if (process.env.NODE_ENV === 'production') {
-    return c.json(
+  if (Bun.env.NODE_ENV === 'production') {
+    return json(
       {
         error: {
           message: 'Internal Server Error',
@@ -38,7 +35,7 @@ app.onError((err, c) => {
     )
   }
 
-  return c.json(
+  return json(
     {
       error: {
         message: err.message,
@@ -50,6 +47,6 @@ app.onError((err, c) => {
 })
 
 export default {
-  port: Number(process.env.PORT) || 3000,
+  port: Number(Bun.env.PORT) || 3000,
   fetch: app.fetch
 }

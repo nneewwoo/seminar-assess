@@ -63,7 +63,8 @@
         "noUnusedLabels": "error",
         "noUnusedPrivateClassMembers": "error",
         "noUnusedVariables": "error",
-        "useArrayLiterals": "off",
+        "noInvalidUseBeforeDeclaration": "error",
+        "useArrayLiterals": "error",
         "useIsNan": "error",
         "useValidForDirection": "error",
         "useYield": "error"

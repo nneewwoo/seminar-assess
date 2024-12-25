@@ -4,10 +4,10 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "build:api": "bun build src/index.ts --target bun --minify --outdir ./dist",
-    "start": "NODE_ENV=production bun dist/index.js"
+    "start": "bun dist/index.js"
   },
   "dependencies": {
     "@seminar-assess/db": "workspace:*",
-    "elysia": "^1.1.26"
+    "hono": "^4.6.14"
   }
 }

@@ -3,6 +3,7 @@ import { logger } from 'hono/logger'
 import Bun from 'bun'
 import guarded from './routes/v1/guarded'
 import { HTTPException } from 'hono/http-exception'
+import { cors } from 'hono/cors'
 
 const app = new Hono()
 
@@ -11,8 +12,26 @@ app.use(
   logger((text) => console.log('[LOG]', text))
 )
 
-app.get('/', ({ json }) => {
-  return json({ message: 'Hello world!' })
+app.use(
+  '*',
+  cors({
+    origin: ['http://tauri.localhost', 'https://admin.seminar-assess.tech'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: [
+      'Authorization',
+      'Content-Type',
+      'Accept',
+      'Upgrade-Insecure-Requests'
+    ],
+    exposeHeaders: ['Content-Length', 'Content-Type'],
+    maxAge: 1800,
+    credentials: true
+  })
+)
+
+app.get('/', context => {
+  console.log(context.req.header("Origin"))
+  return context.json({ message: 'Hello world!' })
 })
 
 app.get('/health', ({ json }) => {

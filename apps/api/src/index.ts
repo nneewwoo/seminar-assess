@@ -28,8 +28,7 @@ app.route('/', guarded)
 app.onError((err, { json }) => {
   const id = crypto.randomUUID()
 
-  console.error(`[Error] ${id}
-${err.stack}`)
+  console.error(`[Error] ${id} - ${err.message} - ${err.cause}`)
 
   if (err instanceof HTTPException) {
     if (Bun.env.NODE_ENV === 'production') {
@@ -43,7 +42,6 @@ ${err.stack}`)
         err.status
       )
     }
-
     return json(
       {
         error: {

@@ -1,21 +1,17 @@
 import { Hono } from 'hono'
-import { bearerAuth } from 'hono/bearer-auth'
-import { validateSessionToken } from '../../../lib/auth'
+import type { Session, User } from '@seminar-assess/db'
+import { handleAuth } from '../../../lib/middleware'
 
-const guarded = new Hono()
+interface Variables {
+  user: User | null
+  session: Session | null
+}
+
+const guarded = new Hono<{ Variables: Variables }>()
 
 guarded.use(
   '*',
-  bearerAuth({
-    verifyToken: async (token, _context) => {
-      const { session } = await validateSessionToken(token)
-
-      return session !== null
-    },
-    invalidTokenMessage: 'Invalid token provided',
-    noAuthenticationHeaderMessage: 'No authentication header provided',
-    invalidAuthenticationHeaderMessage: 'Invalid authentication header provided'
-  })
+  handleAuth
 )
 
 guarded.get('/v1/test-bearer-token', async (context) => {

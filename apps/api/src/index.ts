@@ -81,7 +81,6 @@ ${err.stack}`)
 })
 
 export default {
-  host: Bun.env.NODE_ENV === 'development' && '0.0.0.0',
   port: Number(Bun.env.PORT) || 3000,
   fetch: app.fetch
 }

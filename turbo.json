@@ -8,7 +8,6 @@
       "dependsOn": ["^db:generate"]
     },
     "build": {
-      "inputs": [".env*"],
       "outputs": ["dist/**"],
       "dependsOn": ["package"]
     },

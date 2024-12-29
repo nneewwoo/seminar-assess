@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import Bun from 'bun'
 import guarded from './routes/v1/guarded'
+import { HTTPException } from 'hono/http-exception'
 
 const app = new Hono()
 
@@ -11,7 +12,6 @@ app.use(
 )
 
 app.get('/', ({ json }) => {
-  console.log(Bun.env)
   return json({ message: 'Hello world!' })
 })
 
@@ -26,16 +26,42 @@ app.get('/health', ({ json }) => {
 app.route('/', guarded)
 
 app.onError((err, { json }) => {
-  console.error(`[Error] ${err.message}`)
-  console.error(`[Stack] ${err.stack}`)
-  console.error(`[Cause] ${err.cause}`)
+  const id = crypto.randomUUID()
+
+  console.error(`[Error] ${id}
+${err.stack}`)
+
+  if (err instanceof HTTPException) {
+    if (Bun.env.NODE_ENV === 'production') {
+      return json(
+        {
+          error: {
+            message: err.message,
+            id
+          }
+        },
+        err.status
+      )
+    }
+
+    return json(
+      {
+        error: {
+          message: err.message,
+          stack: err.stack,
+          cause: err.cause
+        }
+      },
+      err.status
+    )
+  }
 
   if (Bun.env.NODE_ENV === 'production') {
     return json(
       {
         error: {
           message: 'Internal Server Error',
-          id: crypto.randomUUID()
+          id
         }
       },
       500
@@ -55,6 +81,7 @@ app.onError((err, { json }) => {
 })
 
 export default {
+  host: Bun.env.NODE_ENV === 'development' && '0.0.0.0',
   port: Number(Bun.env.PORT) || 3000,
   fetch: app.fetch
 }

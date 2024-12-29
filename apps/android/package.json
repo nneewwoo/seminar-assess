@@ -2,7 +2,7 @@
   "name": "@seminar-assess/android",
   "version": "0.1.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "",
     "build": "vite build"
   }
 }

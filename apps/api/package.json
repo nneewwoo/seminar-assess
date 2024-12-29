@@ -1,13 +1,15 @@
 {
   "name": "@seminar-assess/api",
   "version": "0.1.0",
-  "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "build:api": "bun build src/index.ts --target bun --minify --outdir ./dist",
-    "start": "bun dist/index.js"
-  },
   "dependencies": {
+    "@oslojs/crypto": "^1.0.1",
+    "@oslojs/encoding": "^1.1.0",
     "@seminar-assess/db": "workspace:*",
     "hono": "^4.6.14"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development bun --watch src/index.ts",
+    "build": "bun build src/index.ts --target bun --minify --outdir ./dist",
+    "start": "bun dist/index.js"
   }
 }

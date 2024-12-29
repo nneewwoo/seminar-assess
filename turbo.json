@@ -13,7 +13,7 @@
       "dependsOn": ["package"]
     },
     "build:api": {
-      "dependsOn": ["^db:generate"],
+      "dependsOn": ["^db:generate", "^db:push", "@seminar-assess/api#build"],
       "outputs": ["apps/api/dist/**"],
       "cache": false
     },
@@ -22,6 +22,9 @@
       "outputs": ["dist/**"]
     },
     "db:generate": {
+      "cache": false
+    },
+    "db:push": {
       "cache": false
     }
   }

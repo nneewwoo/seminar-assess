@@ -3,10 +3,8 @@ import {
   encodeBase32LowerCaseNoPadding,
   encodeHexLowerCase
 } from '@oslojs/encoding'
-
-import { users, sessions } from '@seminar-assess/db/schema'
-import { eq } from '@seminar-assess/db/drizzle'
-import { db, type NewSession } from '@seminar-assess/db'
+import type { Session } from '@prisma/client'
+import { db } from '@seminar-assess/db'
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24
 
@@ -23,52 +21,57 @@ const uuid = (token: string) => {
   ].join('-')
 }
 
-const generateSessionToken = () => {
+const generateSessionToken = (): string => {
   const bytes = crypto.getRandomValues(new Uint8Array(16))
   const token = encodeBase32LowerCaseNoPadding(bytes)
   return token
 }
 
-const createSession = async (token: string, userId: string) => {
+const createSession = async (
+  token: string,
+  userId: string
+): Promise<Session> => {
   const sessionId = uuid(token)
-  const session: NewSession = {
+  const session: Session = {
     id: sessionId,
     userId,
-    expiresAt: new Date(Date.now() + 30 * DAY_IN_MS)
+    expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
   }
-
-  await db.insert(sessions).values(session)
+  await db.session.create({ data: session })
 
   return session
 }
 
 const validateSessionToken = async (token: string) => {
   const sessionId = uuid(token)
-  const result = await db.query.sessions.findFirst({
-    where: eq(sessions.id, sessionId),
-    with: { user: true }
+  const result = await db.session.findUnique({
+    where: { id: sessionId },
+    include: { user: true }
   })
 
-  if (result) {
-    const { user, ...session } = result
-
-    if (Date.now() >= session.expiresAt.getTime()) {
-      await db.delete(sessions).where(eq(sessions.id, sessionId))
-      return { session: null, user: null }
-    }
-
-    if (Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15) {
-      session.expiresAt = new Date(Date.now() + 30 * DAY_IN_MS)
-      await db.update(sessions).set(session).where(eq(sessions.id, sessionId))
-    }
-    return { session, user }
+  if (!result) {
+    return { session: null, user: null }
   }
 
-  return { session: null, user: null }
+  const { user, ...session } = result
+
+  if (Date.now() >= session.expiresAt.getTime()) {
+    await db.session.delete({ where: { id: sessionId } })
+    return { session: null, user: null }
+  }
+
+  if (Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15) {
+    session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30)
+    await db.session.update({
+      where: { id: session.id },
+      data: { expiresAt: session.expiresAt }
+    })
+  }
+  return { session, user }
 }
 
-const invalidateSessionToken = async (sessionID: string) => {
-  await db.delete(sessions).where(eq(sessions.id, sessionID))
+const invalidateSession = async (sessionId: string) => {
+  await db.session.delete({ where: { id: sessionId } })
 }
 
 type SessionValidationResult = Awaited<ReturnType<typeof validateSessionToken>>
@@ -77,6 +80,6 @@ export {
   generateSessionToken,
   createSession,
   validateSessionToken,
-  invalidateSessionToken,
+  invalidateSession,
   type SessionValidationResult
 }

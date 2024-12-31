@@ -25,7 +25,8 @@
       "**/.env",
       "**/.env.*",
       "**/bun.lockb",
-      ".github"
+      ".github",
+      "*.svelte"
     ]
   },
   "organizeImports": {
@@ -70,7 +71,6 @@
         "useYield": "error"
       },
       "style": {
-        "noNamespace": "error",
         "useAsConstAssertion": "error",
         "useBlockStatements": "off"
       },
@@ -113,7 +113,8 @@
       "**/.env",
       "**/.env.*",
       "**/bun.lockb",
-      ".github"
+      ".github",
+      "*.svelte"
     ]
   },
   "javascript": {
@@ -128,25 +129,5 @@
       "bracketSpacing": true,
       "attributePosition": "multiline"
     }
-  },
-  "overrides": [
-    {
-      "include": ["**/*.svelte"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "recommended": true
-          },
-          "style": {
-            "noVar": "error"
-          },
-          "security": {
-            "noGlobalEval": "error",
-            "noDangerouslySetInnerHtml": "error",
-            "noDangerouslySetInnerHtmlWithChildren": "error"
-          }
-        }
-      }
-    }
-  ]
+  }
 }

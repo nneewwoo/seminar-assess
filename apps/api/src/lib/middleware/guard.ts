@@ -1,8 +1,8 @@
 import type { Context, MiddlewareHandler, Next } from 'hono'
 import { HTTPException } from 'hono/http-exception'
-import * as auth from './auth'
+import * as auth from '../auth'
 
-const handleAuth: MiddlewareHandler = async (context: Context, next: Next) => {
+const guard: MiddlewareHandler = async (context: Context, next: Next) => {
   const { req, res } = context
   const token = req.header('Authorization')?.split(' ')[1]
 
@@ -34,4 +34,4 @@ const handleAuth: MiddlewareHandler = async (context: Context, next: Next) => {
   await next()
 }
 
-export { handleAuth }
+export { guard }

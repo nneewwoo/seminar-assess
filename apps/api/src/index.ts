@@ -1,16 +1,13 @@
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import Bun from 'bun'
-import guarded from './routes/v1/guarded'
 import { HTTPException } from 'hono/http-exception'
 import { cors } from 'hono/cors'
+import v1 from './routes/v1'
 
 const app = new Hono()
 
-app.use(
-  '*',
-  logger((text) => console.log('[LOG]', text))
-)
+app.use('*', logger())
 
 app.use(
   '*',
@@ -29,20 +26,15 @@ app.use(
   })
 )
 
-app.get('/', context => {
-  console.log(context.req.header("Origin"))
-  return context.json({ message: 'Hello world!' })
-})
+app.route('/v1', v1)
 
-app.get('/health', ({ json }) => {
+app.get('*', ({ json }) => {
   return json({
     status: 'OK',
     uptime: process.uptime(),
     timestamp: new Date().toISOString()
   })
 })
-
-app.route('/', guarded)
 
 app.onError((err, { json }) => {
   const id = crypto.randomUUID()

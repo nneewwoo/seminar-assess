@@ -1,7 +1,6 @@
 'use client'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 import { useState, useEffect } from 'react'
-import React from 'react'
 
 import {
   ChartContainer,
@@ -59,10 +58,14 @@ type Topic = {
   number_of_votes: number
   course: keyof typeof chartConfig
 }
+type ChartData = {
+  course: string
+  votes: number
+}
 
 function TNAResults() {
-  const [seminarList, setSeminarList] = useState<Topic[]>([])
-  const [chartData, setChartData] = useState<any[]>([]) // To hold the formatted chart data
+  const [_seminarList, setSeminarList] = useState<Topic[]>([])
+  const [chartData, setChartData] = useState<ChartData[]>([]) // To hold the formatted chart data
 
   useEffect(() => {
     // Fetch cycle data and then seminar list
@@ -80,7 +83,7 @@ function TNAResults() {
 
             // Normalize the course names before setting state
             const normalizedSeminars = data.seminar_list.map(
-              (seminar: any) => ({
+              (seminar: Topic) => ({
                 ...seminar,
                 course: normalizeCourseName(seminar.course) // Normalize the course name
               })
@@ -90,7 +93,7 @@ function TNAResults() {
 
             // Aggregate the data into chartData format
             const aggregatedData = normalizedSeminars.reduce(
-              (acc: any, seminar: Topic) => {
+              (acc: { [key: string]: number }, seminar: Topic) => {
                 // If the course already exists in the accumulator, add votes
                 if (acc[seminar.course]) {
                   acc[seminar.course] += seminar.number_of_votes
@@ -104,15 +107,12 @@ function TNAResults() {
             )
 
             // Transform aggregated data into chartData format
-            const formattedChartData = [
-              {
-                Education: aggregatedData['Education'] || 0,
-                FoodTechnology: aggregatedData['FoodTechnology'] || 0,
-                Criminology: aggregatedData['Criminology'] || 0,
-                ComputerScience: aggregatedData['ComputerScience'] || 0,
-                Fisheries: aggregatedData['Fisheries'] || 0
-              }
-            ]
+            const formattedChartData = Object.keys(aggregatedData).map(
+              (course) => ({
+                course,
+                votes: aggregatedData[course]
+              })
+            )
 
             setChartData(formattedChartData) // Set the formatted chart data
           })

@@ -4,98 +4,74 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow
+} from '@/components/ui/table'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter
+} from '@/components/ui/dialog'
 
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
+import { Button } from '@/components/ui/button'
+import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useState, useEffect } from 'react'
 type Exam = {
-  exam: string;
-  choices: string[];
-  answer: string;
-  id: string;
-};
+  exam: string
+  choices: string[]
+  answer: string
+  id: string
+}
 
 function test() {
-  const [exams, setExams] = useState<Exam[]>([]);
+  const [exams, setExams] = useState<Exam[]>([])
   useEffect(() => {
-    fetch("https://672ecdf8229a881691f0f414.mockapi.io/exam")
+    fetch('https://672ecdf8229a881691f0f414.mockapi.io/exam')
       .then((response) => response.json())
       .then((data) => {
-        setExams(data);
-      });
-  }, []);
+        setExams(data)
+      })
+  }, [])
   return (
     <>
       <div>
-        <div className="flex  ">
-          <Card className="w-full h-full">
-            <div className="flex">
+        <div className='flex  '>
+          <Card className='w-full h-full'>
+            <div className='flex'>
               <CardHeader>
                 <CardTitle>Add Questions</CardTitle>
               </CardHeader>
             </div>
-            <CardFooter className="flex ">
+            <CardFooter className='flex '>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline">Continue</Button>
+                  <Button variant='outline'>Continue</Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className='sm:max-w-[425px]'>
                   <DialogHeader>
                     <DialogTitle>Add Questions to the New Topics</DialogTitle>
                   </DialogHeader>
 
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label className="text-right">Question</Label>
-                      <Input className="col-span-3" />
-                      <Label className="text-right">A</Label>
-                      <Input className="col-span-3" />
-                      <Label className="text-right">B</Label>
-                      <Input className="col-span-3" />
-                      <Label className="text-right">C</Label>
-                      <Input className="col-span-3" />
-                      <Label className="text-right">Correct Answer</Label>
-                      <Input className="col-span-3" />
+                  <div className='grid gap-4 py-4'>
+                    <div className='grid grid-cols-4 items-center gap-4'>
+                      <Label className='text-right'>Question</Label>
+                      <Input className='col-span-3' />
+                      <Label className='text-right'>A</Label>
+                      <Input className='col-span-3' />
+                      <Label className='text-right'>B</Label>
+                      <Input className='col-span-3' />
+                      <Label className='text-right'>C</Label>
+                      <Input className='col-span-3' />
+                      <Label className='text-right'>Correct Answer</Label>
+                      <Input className='col-span-3' />
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button type="submit">Save changes</Button>
+                    <Button type='submit'>Save changes</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -105,20 +81,22 @@ function test() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="">Question</TableHead>
-              <TableHead className="">A</TableHead>
-              <TableHead className="">B</TableHead>
-              <TableHead className="">C</TableHead>
-              <TableHead className="">D</TableHead>
-              <TableHead className="">Answer</TableHead>
+              <TableHead className=''>Question</TableHead>
+              <TableHead className=''>A</TableHead>
+              <TableHead className=''>B</TableHead>
+              <TableHead className=''>C</TableHead>
+              <TableHead className=''>D</TableHead>
+              <TableHead className=''>Answer</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {exams.map((invoice) => (
               <TableRow key={invoice.exam}>
                 <TableCell>{invoice.exam}</TableCell>
-                {invoice.choices.map((choice) => (
-                  <TableCell className="max-w-8 text-ellipsis whitespace-nowrap overflow-hidden">
+                {invoice.choices.map((choice, index) => (
+                  <TableCell
+                    key={`${invoice.exam}-${index}`}
+                    className='max-w-8 text-ellipsis whitespace-nowrap overflow-hidden'>
                     {choice}
                   </TableCell>
                 ))}
@@ -129,7 +107,7 @@ function test() {
         </Table>
       </div>
     </>
-  );
+  )
 }
 
-export default test;
+export default test

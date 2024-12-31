@@ -19,6 +19,7 @@
     "formatWithErrors": false,
     "attributePosition": "multiline",
     "ignore": [
+      "**/.svelte-kit/**",
       "**/node_modules",
       "**/dist",
       "**/crates",
@@ -107,6 +108,7 @@
       }
     },
     "ignore": [
+      "**/.svelte-kit/**",
       "**/node_modules",
       "**/dist",
       "**/crates",
@@ -238,7 +240,7 @@
             "noUnusedVariables": "error",
             "useArrayLiterals": "off"
           },
-          "style": { "noNamespace": "error", "useAsConstAssertion": "error" },
+          "style": { "noNamespace": "off", "useAsConstAssertion": "error" },
           "suspicious": {
             "noExplicitAny": "error",
             "noExtraNonNullAssertion": "error",
@@ -499,7 +501,7 @@
             "noUnusedVariables": "error",
             "useArrayLiterals": "off"
           },
-          "style": { "noNamespace": "error", "useAsConstAssertion": "error" },
+          "style": { "noNamespace": "off", "useAsConstAssertion": "error" },
           "suspicious": {
             "noExplicitAny": "error",
             "noExtraNonNullAssertion": "error",

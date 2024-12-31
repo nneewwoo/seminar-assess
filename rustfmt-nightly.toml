@@ -1,0 +1,7 @@
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
+max_width = 80
+newline_style = "Unix"
+tab_spaces = 2
+hard_tabs = false
+edition = "2021"

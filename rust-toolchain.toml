@@ -1,0 +1,16 @@
+[toolchain]
+channel = "nightly-2024-11-15"
+components = [
+  "rustfmt",
+  "clippy",
+  "rustc-dev",
+  "rust-src",
+  "llvm-tools-preview",
+]
+profile = "minimal"
+targets = [
+  "aarch64-linux-android",
+  "armv7-linux-androideabi",
+  "i686-linux-android",
+  "x86_64-linux-android",
+]

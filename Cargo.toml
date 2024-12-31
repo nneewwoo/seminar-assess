@@ -1,0 +1,4 @@
+[workspace]
+members = ["crates/seminar-assess-tauri"]
+
+resolver = "2"

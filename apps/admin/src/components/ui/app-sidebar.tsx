@@ -38,6 +38,10 @@ const items = [
     url: '/'
   },
   {
+    title: 'Courses',
+    url: '/list/course'
+  },
+  {
     title: 'Benificiaries',
     url: '/list/datatable'
   },
@@ -90,18 +94,13 @@ export function AppSidebar() {
     arr.some((item) => window.location.pathname.includes(item.url))
 
   const handleLogout = async () => {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/account/signout`,
-      {
-        headers: {
-          Authorization: `Bearer ${session}`
-        }
+    await axios.get(`${import.meta.env.VITE_API_URL}/account/signout`, {
+      headers: {
+        Authorization: `Bearer ${session}`
       }
-    )
+    })
 
-    if (response?.data?.success) {
-      logout()
-    }
+    logout()
   }
   return (
     <Sidebar variant='floating'>

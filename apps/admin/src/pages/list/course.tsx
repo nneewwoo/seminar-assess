@@ -1,4 +1,5 @@
 'use client'
+
 import * as React from 'react'
 import {
   type ColumnDef,
@@ -12,37 +13,6 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table'
-
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-
-import { useState } from 'react'
-import { useEffect } from 'react'
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { ArrowUpDown } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -51,36 +21,34 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog'
-import type { Seminar, Course, Cycle } from '@/lib/types'
+import { ArrowUpDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table'
 import axios from 'axios'
+import type { Course } from '@/lib/types'
 import useLocalStorage from '@/hooks/use-local-storage'
 
-export default function tna() {
-  const [data, setData] = useState<Seminar[]>([])
-  const [courseList, setCourseList] = useState<Course[]>([])
-  const [course, setCourse] = useState<Course | null>(null)
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false)
+export default function CourseList() {
+  const [data, setData] = React.useState<Course[]>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
-  const [cycle, setCycle] = React.useState<Cycle | null>(null)
   const [rowSelection, setRowSelection] = React.useState({})
-  const [newSeminar, setNewSeminar] = React.useState<Seminar | null>(null)
+  const [dialogOpen, setDialogOpen] = React.useState(false)
 
-  const getCycle = async () => {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/cycle/current`,
-      {
-        headers: {
-          Authorization: `Bearer ${useLocalStorage('get', 'session-token')}`
-        }
-      }
-    )
-    setCycle(response.data.body)
-  }
+  const [newCourse, setNewCourse] = React.useState('Bachelor of Science ')
 
   const getCourses = async () => {
     const response = await axios.get(`${import.meta.env.VITE_API_URL}/course`, {
@@ -88,22 +56,31 @@ export default function tna() {
         Authorization: `Bearer ${useLocalStorage('get', 'session-token')}`
       }
     })
-    setCourseList(response.data.body)
+    setData(response.data.body)
   }
 
-  const getSeminars = async () => {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/seminar`,
+  const handleAddCourse = async () => {
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_URL}/course`,
+      {
+        name: newCourse
+      },
       {
         headers: {
           Authorization: `Bearer ${useLocalStorage('get', 'session-token')}`
         }
       }
     )
-    setData(response.data.body)
+
+    if (response?.data?.success) {
+      alert('Course added successfully')
+      setData([...data, { id: 'temp', name: newCourse }])
+    }
+
+    setDialogOpen(false)
   }
 
-  const columns: ColumnDef<Seminar>[] = [
+  const columns: ColumnDef<Course>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -127,7 +104,7 @@ export default function tna() {
       enableHiding: false
     },
     {
-      accessorKey: 'title',
+      accessorKey: 'name',
       header: ({ column }) => {
         return (
           <Button
@@ -135,33 +112,13 @@ export default function tna() {
             onClick={() =>
               column.toggleSorting(column.getIsSorted() === 'asc')
             }>
-            Title
+            Course Name
             <ArrowUpDown />
           </Button>
         )
       },
       cell: ({ row }) => (
-        <div className='capitalize'>{row.getValue('title')}</div>
-      )
-    },
-    {
-      accessorKey: 'course',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant='ghost'
-            onClick={() =>
-              column.toggleSorting(column.getIsSorted() === 'asc')
-            }>
-            Title
-            <ArrowUpDown />
-          </Button>
-        )
-      },
-      cell: ({ row }) => (
-        <div className='capitalize'>
-          {(row.getValue('course') as Course).name}
-        </div>
+        <div className='capitalize'>{row.getValue('name')}</div>
       )
     }
   ]
@@ -185,34 +142,8 @@ export default function tna() {
     }
   })
 
-  const handleAddSeminar = async () => {
-    if (newSeminar) {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/seminar`,
-        {
-          cycleId: cycle?.id,
-          courseId: course?.id,
-          title: newSeminar.title,
-          description: newSeminar.description
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${useLocalStorage('get', 'session-token')}`
-          }
-        }
-      )
-      if (response?.data?.success) {
-        setData([...data, newSeminar])
-        setNewSeminar(null)
-      }
-    }
-    setDialogOpen(false)
-  }
-
-  useEffect(() => {
-    getCycle()
+  React.useEffect(() => {
     getCourses()
-    getSeminars()
   }, [])
 
   return (
@@ -222,56 +153,23 @@ export default function tna() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant='outline'>Add Seminar</Button>
+            <Button variant='outline'>Add Course</Button>
           </DialogTrigger>
           <DialogContent className='sm:max-w-[425px]'>
             <DialogHeader>
-              <DialogTitle>Add new seminar</DialogTitle>
+              <DialogTitle>Add new course</DialogTitle>
             </DialogHeader>
-            <Select
-              value={course?.id}
-              onValueChange={(val) => {
-                const select = courseList.find((course) => course.id === val)
-                setCourse(select || null)
-              }}>
-              <SelectTrigger className='w-auto'>
-                <SelectValue placeholder='Select Course' />
-              </SelectTrigger>
-              <SelectContent>
-                {courseList.map((course) => (
-                  <SelectItem
-                    key={course.id}
-                    value={course.id}>
-                    {course.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Input
-              placeholder='Enter seminar title...'
-              value={newSeminar?.title || ''}
-              onChange={(e) => {
-                setNewSeminar({
-                  ...newSeminar,
-                  title: e.target.value
-                } as Seminar)
-              }}
-            />
-            <Input
-              placeholder='Enter seminar description...'
-              value={newSeminar?.description || ''}
-              type='textarea'
-              onChange={(e) => {
-                setNewSeminar({
-                  ...newSeminar,
-                  description: e.target.value
-                } as Seminar)
-              }}
+              type='text'
+              placeholder='Enter course title...'
+              name='new-course'
+              value={newCourse}
+              onChange={(event) => setNewCourse(event.target.value)}
             />
             <DialogFooter>
               <Button
-                onClick={handleAddSeminar}
-                type='submit'>
+                type='submit'
+                onClick={handleAddCourse}>
                 Submit
               </Button>
             </DialogFooter>
@@ -325,6 +223,28 @@ export default function tna() {
             )}
           </TableBody>
         </Table>
+      </div>
+      <div className='flex items-center justify-end space-x-2 py-4'>
+        <div className='flex-1 text-sm text-muted-foreground'>
+          {table.getFilteredSelectedRowModel().rows.length} of{' '}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
+        </div>
+        <div className='space-x-2'>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}>
+            Previous
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}>
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   )

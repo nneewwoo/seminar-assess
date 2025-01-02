@@ -30,6 +30,7 @@ model User {
   phone      String?
   role       UserRole  @default(USER)
   sessions   Session[]
+  Vote       Vote[]
 
   @@map("users")
 }
@@ -44,10 +45,47 @@ model Session {
 }
 
 model Cycle {
-  id     String   @id @default(uuid())
-  active Boolean  @unique @default(true)
-  period Period   @default(IDLE)
-  endsAt DateTime @map("ends_at")
+  id      String    @id @default(uuid())
+  active  Boolean   @unique @default(true)
+  period  Period    @default(IDLE)
+  endsAt  DateTime  @map("ends_at")
+  Seminar Seminar[]
+  Vote    Vote[]
 
   @@map("cycles")
+}
+
+model Course {
+  id      String    @id @default(uuid())
+  name    String    @unique
+  Seminar Seminar[]
+
+  @@map("courses")
+}
+
+model Seminar {
+  id          String @id @default(uuid())
+  title       String
+  description String
+  cycleId     String @map("cycle_id")
+  cycle       Cycle  @relation(fields: [cycleId], references: [id])
+  courseId    String @map("course_id")
+  course      Course @relation(fields: [courseId], references: [id])
+  votes       Vote[]
+
+  @@map("seminars")
+}
+
+model Vote {
+  id        String  @id @default(uuid())
+  userId    String  @map("user_id")
+  user      User    @relation(fields: [userId], references: [id])
+  seminarId String  @map("seminar_id")
+  seminar   Seminar @relation(fields: [seminarId], references: [id])
+  cycleId   String  @map("cycle_id")
+  cycle     Cycle   @relation(fields: [cycleId], references: [id])
+  value     Int
+
+  @@unique([userId, seminarId, cycleId])
+  @@map("votes")
 }

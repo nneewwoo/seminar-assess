@@ -23,7 +23,9 @@ function signup() {
       data
     )
 
-    console.log(response)
+    if (response?.data?.success) {
+      alert('Signup successful')
+    }
   }
 
   return (

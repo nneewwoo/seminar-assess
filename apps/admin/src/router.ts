@@ -9,6 +9,7 @@ export type Path =
   | `/auth/signup`
   | `/eval/evaluation`
   | `/exam/:test`
+  | `/list/course`
   | `/list/datatable`
   | `/load`
   | `/results/allresults/testresults`

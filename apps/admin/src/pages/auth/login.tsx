@@ -30,7 +30,7 @@ function login() {
         alert('You are not authorized to access this page')
         return
       }
-      login(response.data.body)
+      login(response.data.body.token)
     }
   }
 

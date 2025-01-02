@@ -17,7 +17,7 @@ const AppLayout = () => {
         </SidebarProvider>
       )}
       <div
-        className={`absolute pt-2 ${session ? 'left-[20%] w-[80%]' : 'w-full'}`}>
+        className={`absolute pt-2 pr-2 ${session ? 'left-[20%] w-[80%]' : 'w-full'}`}>
         <Routes />
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import type { Session, User } from '@seminar-assess/db'
-import { handleAuth } from '../../../lib/middleware'
+import type { User, Session } from '@seminar-assess/db'
+import { guard } from '../../../lib/middleware'
 
 interface Variables {
   user: User | null
@@ -9,9 +9,9 @@ interface Variables {
 
 const guarded = new Hono<{ Variables: Variables }>()
 
-guarded.use('*', handleAuth)
+guarded.use('*', guard)
 
-guarded.get('/v1/test-bearer-token', async (context) => {
+guarded.get('/test-bearer-token', async (context) => {
   return context.json({ message: 'Test Bearer Token' })
 })
 

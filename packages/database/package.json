@@ -1,21 +1,22 @@
 {
   "name": "@seminar-assess/db",
   "version": "0.1.0",
-  "exports": {
-    ".": "./src/index.ts",
-    "./drizzle": "./src/drizzle.ts",
-    "./schema": "./src/schema.ts"
-  },
+  "type": "module",
   "scripts": {
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push"
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push --skip-generate"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.30.1"
+    "prisma": "^6.1.0"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4",
-    "drizzle-orm": "^0.38.2"
+    "@prisma/client": "^6.1.0"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "prisma": {
+    "seed": "bun prisma/seed.ts"
   }
 }

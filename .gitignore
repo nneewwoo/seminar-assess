@@ -3,3 +3,7 @@ dist
 .turbo
 .env
 .env.*
+
+*.log
+
+target/

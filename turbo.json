@@ -1,29 +1,21 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "ui": "tui",
   "tasks": {
+    "package": {
+      "cache": true,
+      "dependsOn": ["^package"],
+      "outputs": ["package/**/dist/**"]
+    },
     "dev": {
       "persistent": true,
       "cache": false,
-      "dependsOn": ["^db:generate"]
+      "dependsOn": ["^package", "^db:generate"]
     },
     "build": {
-      "outputs": ["dist/**"],
+      "outputs": ["apps/**/dist/**"],
       "dependsOn": ["package"]
     },
-    "build:api": {
-      "dependsOn": ["^db:generate", "^db:push", "@seminar-assess/api#build"],
-      "outputs": ["apps/api/dist/**"],
-      "cache": false
-    },
-    "package": {
-      "dependsOn": ["^package"],
-      "outputs": ["dist/**"]
-    },
     "db:generate": {
-      "cache": false
-    },
-    "db:push": {
       "cache": false
     }
   }

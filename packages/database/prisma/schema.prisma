@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum Period {
+  IDLE
+  VOTING
+  PRE_TEST
+  SEMINAR
+  POST_TEST
+  EVALUATION
+}
+
+model User {
+  id         String    @id @default(uuid())
+  email      String    @unique
+  givenName  String    @map("given_name")
+  familyName String    @map("family_name")
+  password   String
+  phone      String?
+  role       UserRole  @default(USER)
+  sessions   Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime @map("expires_at")
+
+  @@map("sessions")
+}
+
+model Cycle {
+  id     String   @id @default(uuid())
+  active Boolean  @unique @default(true)
+  period Period   @default(IDLE)
+  endsAt DateTime @map("ends_at")
+
+  @@map("cycles")
+}

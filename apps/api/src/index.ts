@@ -89,7 +89,10 @@ app.onError((err, { json }) => {
   )
 })
 
-export default {
+const server = {
   port: Number(Bun.env.PORT) || 3000,
-  fetch: app.fetch
+  fetch: app.fetch,
+  ...(Bun.env.NODE_ENV === 'development' && { host: '0.0.0.0' })
 }
+
+export default server

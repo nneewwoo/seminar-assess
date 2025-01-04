@@ -1,9 +1,9 @@
-import { sessionToken } from '$lib/store'
 import useLocalStorage from './localstorage'
+import { store } from '$lib/store'
 
-interface Response<T> {
+interface IResponse<T> {
   success: boolean
-  body?: T
+  body: T
 }
 
 export const useFetch = async <T>(
@@ -11,7 +11,7 @@ export const useFetch = async <T>(
   url: string,
   data?: unknown
 ) => {
-  const token = sessionToken || useLocalStorage('get', 'session-token')
+  const token = store.get('session-token')
 
   const response = await fetch(`${import.meta.env.VITE_API_URL}${url}`, {
     method,
@@ -23,5 +23,5 @@ export const useFetch = async <T>(
   })
 
   const body = await response.json()
-  return body as Response<T>
+  return body as IResponse<T>
 }

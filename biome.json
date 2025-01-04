@@ -9,6 +9,11 @@
     "ignoreUnknown": false,
     "ignore": []
   },
+  "css": {
+    "formatter": {
+      "enabled": true
+    }
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",

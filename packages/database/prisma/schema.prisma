@@ -21,16 +21,21 @@ enum Period {
   EVALUATION
 }
 
+enum Exam {
+  PRE_TEST
+  POST_TEST
+}
+
 model User {
-  id         String    @id @default(uuid())
-  email      String    @unique
-  givenName  String    @map("given_name")
-  familyName String    @map("family_name")
-  password   String
-  phone      String?
-  role       UserRole  @default(USER)
-  sessions   Session[]
-  Vote       Vote[]
+  id       String    @id @default(uuid())
+  email    String    @unique
+  name     String    @map("name")
+  password String
+  phone    String?
+  role     UserRole  @default(USER)
+  sessions Session[]
+  votes    Vote[]
+  answers  Answer[]
 
   @@map("users")
 }
@@ -64,16 +69,52 @@ model Course {
 }
 
 model Seminar {
-  id          String @id @default(uuid())
+  id          String     @id @default(uuid())
   title       String
   description String
-  cycleId     String @map("cycle_id")
-  cycle       Cycle  @relation(fields: [cycleId], references: [id])
-  courseId    String @map("course_id")
-  course      Course @relation(fields: [courseId], references: [id])
+  cycleId     String     @map("cycle_id")
+  cycle       Cycle      @relation(fields: [cycleId], references: [id])
+  courseId    String     @map("course_id")
+  course      Course     @relation(fields: [courseId], references: [id])
   votes       Vote[]
+  questions   Question[]
 
   @@map("seminars")
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  text      String
+  seminarId String   @map("seminar_id")
+  seminar   Seminar  @relation(fields: [seminarId], references: [id])
+  options   Option[]
+  answers   Answer[]
+
+  @@map("questions")
+}
+
+model Option {
+  id         String   @id @default(uuid())
+  label      String
+  questionId String   @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+  answers    Answer[]
+
+  @@map("question_options")
+}
+
+model Answer {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id])
+  questionId String   @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+  optionId   String   @map("option_id")
+  option     Option   @relation(fields: [optionId], references: [id])
+  for        Exam
+
+  @@unique([userId, questionId])
+  @@map("answers")
 }
 
 model Vote {
@@ -88,4 +129,12 @@ model Vote {
 
   @@unique([userId, seminarId, cycleId])
   @@map("votes")
+}
+
+model Otp {
+  id      String @id @default(uuid())
+  email   String @unique
+  counter BigInt @default(0)
+
+  @@map("otp_codes")
 }

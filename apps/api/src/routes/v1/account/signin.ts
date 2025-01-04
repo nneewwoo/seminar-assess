@@ -43,14 +43,17 @@ signin.post('/password', async ({ req, json }) => {
   const { email, password } = await req.json()
 
   const user = await db.user.findUnique({ where: { email } })
-
   if (user) {
     const valid = await Bun.password.verify(password, user.password)
 
     if (valid) {
       const token = generateSessionToken()
-      createSession(token, user.id)
-      return json({ success: true, body: { token, role: user.role } })
+      const session = await createSession(token, user.id)
+
+      return json({
+        success: true,
+        body: { token, role: user.role, id: session.id }
+      })
     }
     return json({ success: false, body: { error: 'Invalid password' } })
   }

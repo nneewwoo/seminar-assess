@@ -9,7 +9,7 @@ cycle.get('/current', async ({ json }) => {
     select: { id: true, period: true }
   })
   if (cycle) {
-    return json({ success: true, body: { cycle } })
+    return json({ success: true, body: cycle })
   }
   return json({ success: false, body: { error: 'unknown' } })
 })

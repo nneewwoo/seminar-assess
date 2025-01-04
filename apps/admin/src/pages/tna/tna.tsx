@@ -1,3 +1,19 @@
+'use client'
+import * as React from 'react'
+import {
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable
+} from '@tanstack/react-table'
+
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -26,125 +42,290 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-
-type Topic = {
-  id: number
-  title: string
-  number_of_votes: number
-  course: string
-}
-
-enum Course {
-  Criminology = 'Criminology',
-  ComputerScience = 'Computer Science',
-  FoodTechnology = 'Food Technology',
-  Fisheries = 'Fisheries',
-  Education = 'Education'
-}
+import { ArrowUpDown } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog'
+import type { Seminar, Course, Cycle } from '@/lib/types'
+import axios from 'axios'
+import useLocalStorage from '@/hooks/use-local-storage'
 
 export default function tna() {
-  const [topics, setTopics] = useState<Topic[]>([])
-  const [course, setCourse] = useState<Course>(Course.Criminology)
-  const [topic, setTopic] = useState<string>('')
-  const [topicAdded, setTopicAdded] = useState<number>(0)
+  const [data, setData] = useState<Seminar[]>([])
+  const [courseList, setCourseList] = useState<Course[]>([])
+  const [course, setCourse] = useState<Course | null>(null)
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false)
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({})
+  const [cycle, setCycle] = React.useState<Cycle | null>(null)
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [newSeminar, setNewSeminar] = React.useState<Seminar | null>(null)
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/auth/cycle`)
-      .then((response) => response.json())
-      .then((data) => {
-        fetch(`${import.meta.env.VITE_API_URL}/api/auth/seminar-list`, {
-          method: 'POST',
-          body: JSON.stringify({ cycle_id: data.cycle.id })
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            setTopics(data.seminar_list)
-          })
-      })
-  }, [topicAdded])
-
-  const handleSubmit = () => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/auth/cycle`)
-      .then((response) => response.json())
-      .then((data) => {
-        fetch(`${import.meta.env.VITE_API_URL}/api/admin/add-seminar`, {
-          method: 'POST',
-          body: JSON.stringify({
-            course,
-            title: topic,
-            cycle_id: data.cycle.id
-          })
-        })
-          .then((response) => response.json())
-          .then((_data) => {
-            setTopicAdded(topicAdded + 1)
-          })
-      })
+  const getCycle = async () => {
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/cycle/current`,
+      {
+        headers: {
+          Authorization: `Bearer ${useLocalStorage('get', 'session-token')}`
+        }
+      }
+    )
+    setCycle(response.data.body)
   }
 
+  const getCourses = async () => {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/course`, {
+      headers: {
+        Authorization: `Bearer ${useLocalStorage('get', 'session-token')}`
+      }
+    })
+    setCourseList(response.data.body)
+  }
+
+  const getSeminars = async () => {
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/seminar`,
+      {
+        headers: {
+          Authorization: `Bearer ${useLocalStorage('get', 'session-token')}`
+        }
+      }
+    )
+    setData(response.data.body)
+  }
+
+  const columns: ColumnDef<Seminar>[] = [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label='Select all'
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label='Select row'
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false
+    },
+    {
+      accessorKey: 'title',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant='ghost'
+            onClick={() =>
+              column.toggleSorting(column.getIsSorted() === 'asc')
+            }>
+            Title
+            <ArrowUpDown />
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div className='capitalize'>{row.getValue('title')}</div>
+      )
+    },
+    {
+      accessorKey: 'course',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant='ghost'
+            onClick={() =>
+              column.toggleSorting(column.getIsSorted() === 'asc')
+            }>
+            Title
+            <ArrowUpDown />
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div className='capitalize'>
+          {(row.getValue('course') as Course).name}
+        </div>
+      )
+    }
+  ]
+
+  const table = useReactTable({
+    data,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection
+    }
+  })
+
+  const handleAddSeminar = async () => {
+    if (newSeminar) {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/seminar`,
+        {
+          cycleId: cycle?.id,
+          courseId: course?.id,
+          title: newSeminar.title,
+          description: newSeminar.description
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${useLocalStorage('get', 'session-token')}`
+          }
+        }
+      )
+      if (response?.data?.success) {
+        setData([...data, newSeminar])
+        setNewSeminar(null)
+      }
+    }
+    setDialogOpen(false)
+  }
+
+  useEffect(() => {
+    getCycle()
+    getCourses()
+    getSeminars()
+  }, [])
+
   return (
-    <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className='w-[100px] text-black font-bold  '>
-              Topic
-            </TableHead>
-            <TableHead className='w-[100px] text-black font-bold  '>
-              Course
-            </TableHead>
-            <TableHead className='w-[100px] text-black font-bold  '>
-              Votes
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {topics.map((topiko) => (
-            <TableRow key={topiko.id}>
-              <TableCell className=''>{topiko.title}</TableCell>
-              <TableCell className=''>{topiko.course}</TableCell>
-              <TableCell className=''>{topiko.number_of_votes}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <div className='flex items-center justify-center '>
-        <Card className='w-full'>
-          <CardHeader>
-            <CardTitle>Add Topic</CardTitle>
-          </CardHeader>
-          <CardContent>
+    <div className='w-full'>
+      <div className='flex justify-end w-full'>
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant='outline'>Add Seminar</Button>
+          </DialogTrigger>
+          <DialogContent className='sm:max-w-[425px]'>
+            <DialogHeader>
+              <DialogTitle>Add new seminar</DialogTitle>
+            </DialogHeader>
             <Select
-              value={course}
-              onValueChange={(val) => setCourse(val as Course)}>
+              value={course?.id}
+              onValueChange={(val) => {
+                const select = courseList.find((course) => course.id === val)
+                setCourse(select || null)
+              }}>
               <SelectTrigger className='w-auto'>
                 <SelectValue placeholder='Select Course' />
               </SelectTrigger>
               <SelectContent>
-                {Object.values(Course).map((course) => (
+                {courseList.map((course) => (
                   <SelectItem
-                    key={course}
-                    value={course}>
-                    {course}
+                    key={course.id}
+                    value={course.id}>
+                    {course.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Input
-              placeholder='Topic'
-              value={topic}
-              onChange={(e) => setTopic(e.currentTarget.value)}
+              placeholder='Enter seminar title...'
+              value={newSeminar?.title || ''}
+              onChange={(e) => {
+                setNewSeminar({
+                  ...newSeminar,
+                  title: e.target.value
+                } as Seminar)
+              }}
             />
-          </CardContent>
-          <CardFooter className='flex justify-between'>
-            <Button
-              onClick={handleSubmit}
-              className='bg-amber-700 hover:bg-amber-800   text-white font-bold py-2 px-4 rounded active:bg-amber-900 '>
-              Submit
-            </Button>
-          </CardFooter>
-        </Card>
+            <Input
+              placeholder='Enter seminar description...'
+              value={newSeminar?.description || ''}
+              type='textarea'
+              onChange={(e) => {
+                setNewSeminar({
+                  ...newSeminar,
+                  description: e.target.value
+                } as Seminar)
+              }}
+            />
+            <DialogFooter>
+              <Button
+                onClick={handleAddSeminar}
+                type='submit'>
+                Submit
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-    </>
+      <div className='rounded-md border mt-2'>
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className='h-24 text-center'>
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   )
 }

@@ -10,6 +10,7 @@
     "@elysiajs/cors": "^1.2.0",
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
+    "@oslojs/otp": "^1.1.0",
     "@seminar-assess/db": "workspace:*",
     "hono": "^4.6.15",
     "zod": "^3.24.1"

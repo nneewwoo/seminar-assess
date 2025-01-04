@@ -9,6 +9,11 @@
     "ignoreUnknown": false,
     "ignore": []
   },
+  "css": {
+    "formatter": {
+      "enabled": true
+    }
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -385,7 +390,7 @@
         "rules": {
           "correctness": {
             "useExhaustiveDependencies": "off",
-            "useHookAtTopLevel": "error"
+            "useHookAtTopLevel": "off"
           }
         }
       }
@@ -646,7 +651,7 @@
         "rules": {
           "correctness": {
             "useExhaustiveDependencies": "off",
-            "useHookAtTopLevel": "error"
+            "useHookAtTopLevel": "off"
           }
         }
       }

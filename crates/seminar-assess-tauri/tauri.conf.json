@@ -3,7 +3,7 @@
   "productName": "Seminar Assess",
   "identifier": "com.seminar-assess.app",
   "build": {
-    "beforeDevCommand": "bun dev:android",
+    "beforeDevCommand": "bun turbo dev",
     "beforeBuildCommand": "bun build:android",
     "frontendDist": "../../apps/android/build",
     "devUrl": "http://localhost:1420"

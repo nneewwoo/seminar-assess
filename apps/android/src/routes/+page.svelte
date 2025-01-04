@@ -1,2 +1,3 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<h1 class="p-4">Welcome to SvelteKit</h1>
+<a href="/account/signin/steps/email">eee</a>
+<a href="http://ui.aceternity.com">min</a>

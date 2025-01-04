@@ -23,6 +23,8 @@ import {
   CollapsibleTrigger,
   CollapsibleContent
 } from './collapsible'
+import { useAuth } from '@/context/AuthProvider'
+import axios from 'axios'
 
 type MenuItem = {
   title: string
@@ -34,6 +36,10 @@ const items = [
   {
     title: 'Home',
     url: '/'
+  },
+  {
+    title: 'Courses',
+    url: '/list/course'
   },
   {
     title: 'Benificiaries',
@@ -83,8 +89,19 @@ const tests = [
 ]
 
 export function AppSidebar() {
+  const { logout, session } = useAuth()
   const isCurrentUri = (arr: MenuItem[]) =>
     arr.some((item) => window.location.pathname.includes(item.url))
+
+  const handleLogout = async () => {
+    await axios.get(`${import.meta.env.VITE_API_URL}/account/signout`, {
+      headers: {
+        Authorization: `Bearer ${session}`
+      }
+    })
+
+    logout()
+  }
   return (
     <Sidebar variant='floating'>
       <SidebarContent>
@@ -201,7 +218,12 @@ export function AppSidebar() {
             side='top'
             className='w-fit'>
             <DropdownMenuItem>
-              <span>Sign out</span>
+              <button
+                className='w-full h-full'
+                type='button'
+                onClick={handleLogout}>
+                Signout
+              </button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

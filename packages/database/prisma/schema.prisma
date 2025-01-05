@@ -98,6 +98,7 @@ model Option {
   label      String
   questionId String   @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
+  isCorrect  Boolean  @map("is_correct")
   answers    Answer[]
 
   @@map("question_options")
@@ -125,7 +126,6 @@ model Vote {
   seminar   Seminar @relation(fields: [seminarId], references: [id])
   cycleId   String  @map("cycle_id")
   cycle     Cycle   @relation(fields: [cycleId], references: [id])
-  value     Int
 
   @@unique([userId, seminarId, cycleId])
   @@map("votes")

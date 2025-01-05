@@ -1,8 +1,10 @@
-import { Hono } from 'hono'
+import { Hono, type Context, type Next } from 'hono'
 import { type User, type Session, db } from '@seminar-assess/db'
 import { guard } from '../../../lib/middleware'
 import { invalidateSession } from '../../../lib/auth'
 import seminar from './seminar'
+import cycle from './cycle'
+import question from './question'
 
 interface Variables {
   user: User | null
@@ -10,6 +12,15 @@ interface Variables {
 }
 
 const guarded = new Hono<{ Variables: Variables }>()
+
+const _guardExcept = (path: string[]) => {
+  return async (c: Context, next: Next) => {
+    if (path.includes(c.req.path)) {
+      return await next() // Skip the guard middleware
+    }
+    return await guard(c, next) // Apply the guard middleware
+  }
+}
 
 guarded.use('*', guard)
 
@@ -43,6 +54,8 @@ guarded.post('/course', async ({ req, json }) => {
   return json({ success: false, body: { error: 'unknown' } })
 })
 
+guarded.route('/cycle', cycle)
 guarded.route('/seminar', seminar)
+guarded.route('/question', question)
 
 export default guarded

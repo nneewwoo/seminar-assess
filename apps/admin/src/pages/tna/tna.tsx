@@ -246,7 +246,8 @@ export default function tna() {
               onChange={(e) => {
                 setNewSeminar({
                   ...newSeminar,
-                  title: e.target.value
+                  title: e.target.value,
+                  course
                 } as Seminar)
               }}
             />

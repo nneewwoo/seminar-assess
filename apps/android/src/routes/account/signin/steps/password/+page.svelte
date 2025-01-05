@@ -36,8 +36,7 @@
         const { token, id } = response.body;
         $store.set("session-token", token);
         await db.session.add({ id, token });
-
-        navigateTo("/guarded", undefined, { replaceState: true });
+        navigateTo("/guarded/init", undefined, { replaceState: true });
       } else {
         passwordError = response.body.error;
       }

@@ -10,6 +10,5 @@ export const load: LayoutLoad = async () => {
   if (session) {
     store.set('session-token', session.token)
   }
-
   return {}
 }

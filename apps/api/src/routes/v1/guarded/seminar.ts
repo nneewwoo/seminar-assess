@@ -1,9 +1,20 @@
-import { db, type Course } from '@seminar-assess/db'
+import { db, type Session, type User } from '@seminar-assess/db'
 import { Hono } from 'hono'
 
-const seminar = new Hono()
+interface Variables {
+  user: User | null
+  session: Session | null
+}
 
-seminar.get('/', async ({ json }) => {
+const seminar = new Hono<{ Variables: Variables }>()
+
+seminar.get('/', async ({ get, json }) => {
+  const session = get('session')
+
+  if (!session) {
+    return json({ success: false, body: { error: 'unauthorized' } })
+  }
+
   const seminars = await db.seminar.findMany({
     where: {
       cycle: {
@@ -11,12 +22,30 @@ seminar.get('/', async ({ json }) => {
       }
     },
     include: {
-      course: true
+      course: true,
+      votes: {
+        where: {
+          userId: session.userId
+        }
+      },
+      _count: {
+        select: {
+          votes: true
+        }
+      }
     }
   })
 
   if (seminars) {
-    return json({ success: true, body: seminars })
+    const list = seminars.map((seminar) => ({
+      id: seminar.id,
+      title: seminar.title,
+      description: seminar.description,
+      course: seminar.course,
+      numberOfVotes: seminar._count.votes,
+      votedByUser: seminar.votes.length > 0
+    }))
+    return json({ success: true, body: list })
   }
 
   return json({ success: false, body: { error: 'unknown' } })

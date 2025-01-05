@@ -22,7 +22,7 @@ signin.post('/email', async ({ req, json }) => {
       const user = await db.user.findUnique({ where: { email } })
 
       if (user) {
-        return json({ success: true, body: { name: user.givenName } })
+        return json({ success: true, body: { name: user.name } })
       }
       return json({
         success: false,

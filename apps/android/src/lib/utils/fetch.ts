@@ -1,5 +1,6 @@
 import useLocalStorage from './localstorage'
 import { store } from '$lib/store'
+import { db } from '$lib/localdb'
 
 interface IResponse<T> {
   success: boolean
@@ -11,7 +12,9 @@ export const useFetch = async <T>(
   url: string,
   data?: unknown
 ) => {
-  const token = store.get('session-token')
+  const token =
+    store.get('session-token') ||
+    (await db.session.orderBy(':id').first())?.token
 
   const response = await fetch(`${import.meta.env.VITE_API_URL}${url}`, {
     method,

@@ -4,7 +4,7 @@ export default function PrivacyPolicy() {
   return (
     <TracingBeam className='px-6 mt-8 mb-32'>
       <div className='min-h-screen px-4'>
-        <div className='prose prose-a:text-[#4682B4] prose-li:font-[family-name:var(--font-geist-mono)] prose-strong:text-white prose-li:text-white/80 prose-p:text-white/80 prose-headings:text-amber-100 mx-auto prose-lg p-6'>
+        <div className='prose prose-sm md:prose-lg prose-a:text-[#4682B4] prose-strong:text-white prose-li:text-white/80 prose-p:text-white/80 prose-headings:text-amber-100 mx-auto p-4'>
           <h1>Privacy Policy</h1>
 
           <p>

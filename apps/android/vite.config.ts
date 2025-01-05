@@ -1,10 +1,11 @@
 import { sveltekit } from '@sveltejs/kit/vite'
 import { internalIpV4Sync } from 'internal-ip'
 import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [sveltekit()],
+  plugins: [sveltekit(), tailwindcss()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -17,7 +18,7 @@ export default defineConfig({
     host: true,
     hmr: {
       protocol: 'ws',
-      host: internalIpV4Sync(),
+      host: 'localhost',
       port: 1421
     }
   },

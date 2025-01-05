@@ -6,7 +6,7 @@ const cycle = new Hono()
 cycle.get('/current', async ({ json }) => {
   const cycle = await db.cycle.findFirst({
     where: { active: true },
-    select: { id: true, period: true }
+    select: { id: true, period: true, endsAt: true }
   })
   if (cycle) {
     return json({ success: true, body: cycle })

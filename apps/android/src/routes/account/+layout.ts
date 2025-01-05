@@ -6,7 +6,7 @@ export const load: LayoutLoad = async () => {
   const session = store.get('session-token')
 
   if (session) {
-    redirect(302, '/guarded')
+    redirect(302, '/guarded/init')
   }
   return {}
 }

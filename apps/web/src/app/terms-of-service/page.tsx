@@ -4,7 +4,7 @@ export default function Terms() {
   return (
     <TracingBeam className='px-6 mt-8 mb-32'>
       <div className='min-h-screen px-4'>
-        <div className='prose prose-a:text-[#4682B4] prose-strong:text-white prose-li:text-white/80 prose-p:text-white/80 prose-headings:text-amber-100 mx-auto prose-lg p-6'>
+        <div className='prose prose-sm md:prose-lg prose-a:text-[#4682B4] prose-strong:text-white prose-li:text-white/80 prose-p:text-white/80 prose-headings:text-amber-100 mx-auto py-4'>
           <h1>Terms of Service</h1>
           <p>
             By signing up or using the app, you agree to comply with these

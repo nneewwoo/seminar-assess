@@ -8,7 +8,7 @@ export default function Home() {
     <WavyBackground className='font-[family-name:var(--font-inter-sans)]'>
       <main className='max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-24'>
         <div className='mt-5 max-w-3xl text-center mx-auto'>
-          <h1 className='block font-bold text-4xl text-white sm:text-5xl md:text-6xl lg:text-7xl text-white'>
+          <h1 className='block font-bold text-4xl text-white sm:text-5xl md:text-6xl lg:text-7xl'>
             Your Opinion, <br /> Your{' '}
             <FlipWords
               className='text-amber-300'

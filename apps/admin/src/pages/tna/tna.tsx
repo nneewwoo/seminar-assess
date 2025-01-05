@@ -23,13 +23,6 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
 import { useState } from 'react'

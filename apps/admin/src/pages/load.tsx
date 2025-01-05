@@ -16,7 +16,7 @@ function App() {
         <button
           type='submit'
           className='bg-amber-800 text-white p-2 rounded hover:bg-amber-900'>
-          Log In
+          Log Ind
         </button>
       </div>
     </div>

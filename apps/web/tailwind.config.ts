@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss'
 import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette'
+import typography from '@tailwindcss/typography'
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 const addVariablesForColors = ({ addBase, theme }: any) => {
@@ -28,5 +29,5 @@ export default {
       }
     }
   },
-  plugins: [addVariablesForColors]
+  plugins: [addVariablesForColors, typography()]
 } satisfies Config

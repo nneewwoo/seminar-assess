@@ -15,5 +15,8 @@ export default defineConfig({
   server: {
     host: true
   },
-  clearScreen: false
+  clearScreen: false,
+  build: {
+    outDir: './dist'
+  }
 })

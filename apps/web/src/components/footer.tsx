@@ -12,8 +12,14 @@ export default function Footer() {
             </a>
             <p className='mt-3 text-xs sm:text-sm text-white/80'>© 2025</p>
             <p className='mt-3 text-xs sm:text-sm text-white/80'>
-              A project of students from Capiz State University - Dayao
-              Satellite College
+              A project of students from{' '}
+              <a
+                className='text-[#E2725B] underline hover:decoration-2 focus:outline-none focus:decoration-2 dark:text-neutral-500 dark:hover:text-neutral-400'
+                href='https://www.capsu.edu.ph'
+                target='_blank'
+                rel='noreferrer'>
+                Capiz State University - Dayao Satellite College
+              </a>
             </p>
           </div>
 

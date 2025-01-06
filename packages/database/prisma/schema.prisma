@@ -27,15 +27,16 @@ enum Exam {
 }
 
 model User {
-  id       String    @id @default(uuid())
-  email    String    @unique
-  name     String    @map("name")
-  password String
-  phone    String?
-  role     UserRole  @default(USER)
-  sessions Session[]
-  votes    Vote[]
-  answers  Answer[]
+  id            String          @id @default(uuid())
+  email         String          @unique
+  name          String          @map("name")
+  password      String
+  phone         String?
+  role          UserRole        @default(USER)
+  sessions      Session[]
+  votes         Vote[]
+  answers       Answer[]
+  Participation Participation[]
 
   @@map("users")
 }
@@ -129,6 +130,16 @@ model Vote {
 
   @@unique([userId, seminarId, cycleId])
   @@map("votes")
+}
+
+model Participation {
+  id           String  @id @default(uuid())
+  voted        Boolean @default(false)
+  answeredPre  Boolean @default(false) @map("answered_pre")
+  answeredPost Boolean @default(false) @map("answered_post")
+  attended     Boolean @default(false) @map("attended_seminar")
+  userId       String  @map("user_id")
+  user         User    @relation(fields: [userId], references: [id])
 }
 
 model Otp {

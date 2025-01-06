@@ -6,7 +6,7 @@ import { cors } from 'hono/cors'
 import v1 from './routes/v1'
 import { createBunWebSocket } from 'hono/bun'
 
-const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>()
+const { websocket } = createBunWebSocket<ServerWebSocket>()
 
 const app = new Hono()
 
@@ -30,11 +30,6 @@ app.use(
     maxAge: 1800,
     credentials: true
   })
-)
-
-app.get(
-  '/v1/seminar/vote/ws',
-  upgradeWebSocket(() => ({}))
 )
 
 app.route('/v1', v1)
@@ -100,10 +95,14 @@ app.onError((err, { json }) => {
   )
 })
 
-const _server = Bun.serve({
-  port: Number(Bun.env.PORT) || 5000,
-  fetch: app.fetch,
-  websocket
+const server = Bun.serve({
+  fetch: (req, server) => {
+    return app.fetch(req, { ip: server.requestIP(req), server })
+  },
+  websocket,
+  ...(Bun.env.NODE_ENV === 'development' && { hostname: '0.0.0.0' })
 })
 
-export default app
+console.log(`Server is running on ${server.hostname}, port ${server.port}`)
+
+export { server }

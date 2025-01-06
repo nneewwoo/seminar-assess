@@ -50,3 +50,11 @@ export interface Question {
   text: string
   options: QuestionOption[]
 }
+
+export interface Participation {
+  id: string
+  voted: boolean
+  answeredPre: boolean
+  answeredPost: boolean
+  attended: boolean
+}

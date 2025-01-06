@@ -34,7 +34,7 @@
 
       if (response.success) {
         const { token, id } = response.body;
-        $store.set("session-token", token);
+        store.set("session-token", token);
         await db.session.add({ id, token });
         navigateTo("/guarded/init", undefined, { replaceState: true });
       } else {

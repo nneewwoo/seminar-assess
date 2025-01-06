@@ -1,28 +1,16 @@
-import { Hono, type Context, type Next } from 'hono'
-import { type User, type Session, db } from '@seminar-assess/db'
-import { guard } from '../../../lib/middleware'
+import { Hono } from 'hono'
+import { db } from '@seminar-assess/db'
+import { withWsGuard } from '../../../lib/middleware'
 import { invalidateSession } from '../../../lib/auth'
 import seminar from './seminar'
 import cycle from './cycle'
 import question from './question'
-
-interface Variables {
-  user: User | null
-  session: Session | null
-}
+import { server } from '../../..'
+import type { Variables } from '../../../lib/types'
 
 const guarded = new Hono<{ Variables: Variables }>()
 
-const _guardExcept = (path: string[]) => {
-  return async (c: Context, next: Next) => {
-    if (path.includes(c.req.path)) {
-      return await next() // Skip the guard middleware
-    }
-    return await guard(c, next) // Apply the guard middleware
-  }
-}
-
-guarded.use('*', guard)
+guarded.use('*', withWsGuard(['/v1/seminar/vote/ws']))
 
 guarded.get('/account/signout', async ({ get, json }) => {
   const session = get('session')
@@ -38,6 +26,7 @@ guarded.get('/account/signout', async ({ get, json }) => {
 guarded.get('/course', async ({ json }) => {
   const courses = await db.course.findMany()
   if (courses) {
+    server.publish('course', JSON.stringify(courses))
     return json({ success: true, body: courses })
   }
   return json({ success: false, body: { error: 'unknown' } })

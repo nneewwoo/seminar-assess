@@ -2,8 +2,11 @@
   import { Keys } from "$lib/constants";
   import Check from "$lib/icons/Check.svelte";
   import { db } from "$lib/localdb";
-  import { store } from "$lib/store";
+  import { online, store } from "$lib/store";
+  import type { Seminar } from "$lib/types";
+  import { useFetch } from "$lib/utils";
   import { error } from "@sveltejs/kit";
+  import { v4 as uuidv4 } from "uuid";
 
   let voted = $state(false);
   let selectedSeminarId = $state("");
@@ -58,12 +61,10 @@
     const cycle = await db.cycle.orderBy(":id").first();
 
     if (cycle) {
-      const online = store.get(Keys.ONLINE);
-
-      if (!online) {
-        const id = crypto.randomUUID();
-        await db.vote.clear();
-        await db.vote.add({
+      const id = uuidv4();
+      if (!$online) {
+        await db.votes.clear();
+        await db.votes.add({
           id,
           cycleId: cycle.id,
           seminarId: choice,
@@ -71,7 +72,7 @@
         });
 
         await db.seminars.update(choice, {
-          votedByUser: false,
+          votedByUser: true,
         });
 
         await db.seminars
@@ -80,6 +81,12 @@
           .modify((seminar) => {
             seminar.numberOfVotes = (seminar.numberOfVotes || 0) + 1;
           });
+      } else {
+        await useFetch("POST", "/seminar/vote", {
+          id,
+          cycleId: cycle.id,
+          seminarId: choice,
+        });
       }
 
       voted = true;
@@ -95,29 +102,48 @@
   });
 
   $effect(() => {
-    const socket = new WebSocket(
-      `${import.meta.env.VITE_API_URL_WS}/seminar/vote/ws`,
-    );
+    if ($online) {
+      const socket = new WebSocket(
+        `${import.meta.env.VITE_API_URL_WS}/seminar/vote/ws?token=${store.get(Keys.SESSION_TOKEN)}`,
+      );
 
-    socket.onopen = (_event: WebSocketEventMap["open"]) => {
-      console.info("WebSocket client connected");
-    };
+      socket.onopen = (_event: WebSocketEventMap["open"]) => {
+        console.info("WebSocket client connected");
+      };
 
-    socket.onerror = (event: WebSocketEventMap["error"]) => {
-      console.error("WebSocket error:", event);
-    };
+      socket.onerror = (event: WebSocketEventMap["error"]) => {
+        console.error("WebSocket error:", event);
+      };
 
-    socket.onclose = (_event: WebSocketEventMap["close"]) => {
-      console.info("WebSocket client disconnected");
-    };
+      socket.onclose = (_event: WebSocketEventMap["close"]) => {
+        console.info("WebSocket client disconnected");
+      };
 
-    socket.onmessage = (event: WebSocketEventMap["message"]) => {
-      console.log(event.data);
-    };
+      socket.onmessage = async (event: WebSocketEventMap["message"]) => {
+        const data = JSON.parse(event.data) as { id: string } & Partial<
+          Omit<Seminar, "id">
+        >;
+        await db.seminars.update(data.id, data);
+      };
 
-    return () => {
-      socket.close();
-    };
+      (async () => {
+        const votes = await db.votes.filter((vote) => !vote.synced).toArray();
+        if (votes.length > 0) {
+          for (const vote of votes) {
+            await useFetch("POST", "/seminar/vote", {
+              id: vote.id,
+              cycleId: vote.cycleId,
+              seminarId: vote.seminarId,
+            });
+            await db.votes.update(vote.id, { synced: true });
+          }
+        }
+      })();
+
+      return () => {
+        socket.close();
+      };
+    }
   });
 </script>
 

@@ -1,10 +1,6 @@
 import { type User, type Session, db, type Seminar } from '@seminar-assess/db'
 import { Hono } from 'hono'
-
-interface Variables {
-  user: User | null
-  session: Session | null
-}
+import type { Variables } from '../../../lib/types'
 
 const question = new Hono<{ Variables: Variables }>()
 

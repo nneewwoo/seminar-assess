@@ -51,6 +51,10 @@ export const load: PageLoad = async () => {
 
       if (currentCycle.body.id !== storedCycle.id) {
         await db.cycle.clear()
+        await db.seminars.clear()
+        await db.questions.clear()
+        await db.votes.clear()
+
         await db.cycle.add(currentCycle.body)
 
         const { period } = currentCycle.body

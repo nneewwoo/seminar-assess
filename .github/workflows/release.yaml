@@ -135,9 +135,6 @@ jobs:
           name: sveltekit-build
           path: ./apps/android/build
 
-      - name: install tauri-cli
-        run: cargo install tauri-cli@2.1.0
-
       - name: build tauri
         shell: bash
         run: |

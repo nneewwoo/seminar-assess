@@ -9,6 +9,7 @@ import { server } from '../../..'
 import type { Variables } from '../../../lib/types'
 import participation from './participation'
 import evaluation from './evaluation'
+import user from './user'
 
 const guarded = new Hono<{ Variables: Variables }>()
 
@@ -51,5 +52,6 @@ guarded.route('/seminar', seminar)
 guarded.route('/question', question)
 guarded.route('/participation', participation)
 guarded.route('/evaluation', evaluation)
+guarded.route('/user', user)
 
 export default guarded

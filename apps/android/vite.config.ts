@@ -18,7 +18,7 @@ export default defineConfig({
     host: true,
     hmr: {
       protocol: 'ws',
-      host: 'localhost',
+      host: internalIpV4Sync(),
       port: 1421
     }
   },

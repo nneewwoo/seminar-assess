@@ -22,7 +22,7 @@
 <svelte:window {onload} {ononline} {onoffline} />
 
 <main
-	class="h-screen w-screen shadow-box flex flex-col select-none overscroll-none overflow-hidden"
+	class="h-screen w-screen shadow-box flex flex-col select-none overflow-y-hidden"
 >
 	<div class="w-full shadow-box border-r uppercase">
 		{#if !$online}

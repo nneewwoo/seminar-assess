@@ -33,7 +33,6 @@ evaluation.post('/answer', async ({ req, json, get }) => {
         answer
       }
     })
-    console.log('UP', updated)
     if (updated) {
       return json({ success: true })
     }
@@ -50,12 +49,19 @@ evaluation.post('/answer', async ({ req, json, get }) => {
         type
       }
     })
-    console.log('CR', created)
     if (created) {
       return json({ success: true })
     }
   }
   return json({ success: false, body: { error: 'unknown' } })
+})
+
+evaluation.get('/answers', async ({ json }) => {
+  const answers = await db.evaluationAnswer.findMany({
+    include: { question: true, user: true }
+  })
+
+  return json({ success: true, body: answers })
 })
 
 export default evaluation

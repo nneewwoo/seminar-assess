@@ -140,7 +140,11 @@
       </div>
     {:else}
       <div class="w-full h-full py-[20px] overflow-y-hidden">
-        <textarea name="answer" class="px-[20px] w-full h-full" bind:value
+        <textarea
+          placeholder="Write..."
+          name="answer"
+          class="px-[20px] placeholder:text-black/80 w-full h-full"
+          bind:value
         ></textarea>
       </div>
     {/if}
@@ -148,7 +152,7 @@
   <div class="w-full flex uppercase">
     <button
       type="reset"
-      class="p-[20px] w-1/2 uppercase shadow-box content-center"
+      class="p-[20px] w-1/2 uppercase shadow-box content-center active:text-white active:bg-black"
       onclick={() => {
         navigateTo(
           `/guarded/evaluation/question?index=${data.index + 1}&evaluationId=${data.evaluationId}`,

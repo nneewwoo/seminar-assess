@@ -2,6 +2,7 @@
   import { page } from "$app/state";
   import { WEB_URL } from "$lib/constants";
   import { ArrowNE } from "$lib/icons";
+  import { open } from "@tauri-apps/plugin-shell";
 
   let { children } = $props();
 </script>
@@ -13,14 +14,13 @@
       <div class="w-full h-[60px] shadow-box p-[20px]">
         <p>Terms, Conditions, and Privacy Policy</p>
       </div>
-      <a
-        class="p-[20px] w-fit uppercase h-[60px] shadow-box content-center"
-        target="_blank"
-        href={`${WEB_URL}/terms-of-service`}
+      <button
+        class="p-[20px] active:bg-black active:text-white w-fit uppercase h-[60px] shadow-box content-center"
+        onclick={() => open(`${WEB_URL}/terms-of-service`)}
         aria-label="Terms and Privacy link"
       >
         <ArrowNE class="bg-transparent w-[20px] h-[20px]" />
-      </a>
+      </button>
     </div>
   {/if}
 </div>

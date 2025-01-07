@@ -4,6 +4,7 @@
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@tauri-apps/cli": "^2.2.2",
     "@types/bun": "^1.1.14",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
@@ -13,7 +14,6 @@
     "lint": "biome lint --write .",
     "format": "biome format --write .",
     "rustfmt": "cargo +nightly-2024-11-15 fmt -- --config-path rustfmt-nightly.toml",
-    "tauri": "cargo tauri",
     "build:android": "turbo run --filter @seminar-assess/android build --no-daemon"
   },
   "workspaces": ["apps/*", "packages/*"]

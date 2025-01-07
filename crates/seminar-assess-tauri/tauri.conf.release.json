@@ -3,7 +3,7 @@
   "productName": "Seminar Assess",
   "identifier": "com.seminar-assess.app",
   "build": {
-    "beforeBuildCommand": "[ $CI = true ] || pnpm build:android"
+    "beforeBuildCommand": "[ $CI = true ] || bun build:android"
   },
   "bundle": {
     "active": true,

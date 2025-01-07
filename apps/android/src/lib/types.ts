@@ -43,6 +43,7 @@ export interface Vote {
 export interface QuestionOption {
   id: string
   label: string
+  isCorrect: boolean
 }
 
 export interface Question {
@@ -51,10 +52,41 @@ export interface Question {
   options: QuestionOption[]
 }
 
+export interface Answer {
+  id: string
+  questionId: Question['id']
+  optionId: QuestionOption['id']
+  for: 'PRE_TEST' | 'POST_TEST'
+  synced: boolean
+}
+
 export interface Participation {
   id: string
   voted: boolean
   answeredPre: boolean
   answeredPost: boolean
   attended: boolean
+}
+
+export interface EvaluationQuestion {
+  id: string
+  text: string
+}
+
+export interface Evaluation {
+  id: string
+  title: string
+  description: string
+  type: 'RATING' | 'FEEDBACK'
+  questions: EvaluationQuestion[]
+}
+
+export interface EvaluationAnswer {
+  id: string
+  text: EvaluationQuestion['text']
+  evaluationId: Evaluation['id']
+  questionId: EvaluationQuestion['id']
+  answer: string
+  synced: boolean
+  type: Evaluation['type']
 }

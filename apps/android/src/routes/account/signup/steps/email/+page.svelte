@@ -47,7 +47,7 @@
   <div
     class="w-full shadow-box uppercase min-h-[200px] p-[20px] content-center"
   >
-    <h1>Whats your email?</h1>
+    <h1>What’s your email?</h1>
   </div>
   <div class="shadow-box p-[20px] uppercase w-full">
     <h2>Enter a valid email address</h2>

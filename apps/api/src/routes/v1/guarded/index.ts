@@ -1,16 +1,19 @@
 import { Hono } from 'hono'
 import { db } from '@seminar-assess/db'
-import { withWsGuard } from '../../../lib/middleware'
+import { withCycle, withWsGuard } from '../../../lib/middleware'
 import { invalidateSession } from '../../../lib/auth'
 import seminar from './seminar'
 import cycle from './cycle'
 import question from './question'
 import { server } from '../../..'
 import type { Variables } from '../../../lib/types'
+import participation from './participation'
+import evaluation from './evaluation'
 
 const guarded = new Hono<{ Variables: Variables }>()
 
 guarded.use('*', withWsGuard(['/v1/seminar/vote/ws']))
+guarded.use('*', withCycle)
 
 guarded.get('/account/signout', async ({ get, json }) => {
   const session = get('session')
@@ -46,5 +49,7 @@ guarded.post('/course', async ({ req, json }) => {
 guarded.route('/cycle', cycle)
 guarded.route('/seminar', seminar)
 guarded.route('/question', question)
+guarded.route('/participation', participation)
+guarded.route('/evaluation', evaluation)
 
 export default guarded

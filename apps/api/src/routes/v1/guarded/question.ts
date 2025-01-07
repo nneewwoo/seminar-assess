@@ -1,4 +1,4 @@
-import { type User, type Session, db, type Seminar } from '@seminar-assess/db'
+import { db, type Answer } from '@seminar-assess/db'
 import { Hono } from 'hono'
 import type { Variables } from '../../../lib/types'
 
@@ -10,7 +10,7 @@ question.get('/list', async ({ json }) => {
       active: true
     },
     include: {
-      Seminar: {
+      seminar: {
         include: {
           _count: {
             select: {
@@ -28,11 +28,11 @@ question.get('/list', async ({ json }) => {
   }
 
   type Winner = {
-    seminar: (typeof cycle.Seminar)[number]
+    seminar: (typeof cycle.seminar)[number]
     votes: number
   }
 
-  const seminar = cycle.Seminar.reduce<Winner | null>((winner, other) => {
+  const seminar = cycle.seminar.reduce<Winner | null>((winner, other) => {
     const votes = other._count.votes
 
     if (!winner || votes > winner.votes) {
@@ -62,6 +62,31 @@ question.get('/list', async ({ json }) => {
     success: false,
     body: { error: 'No questions found for the seminar' }
   })
+})
+
+question.post('/answer', async ({ get, req, json }) => {
+  const { newAnswer } = await req.json<{ newAnswer: Answer }>()
+
+  const user = get('user')
+
+  if (user) {
+    const answer = await db.answer.create({
+      data: {
+        id: newAnswer.id,
+        optionId: newAnswer.optionId,
+        questionId: newAnswer.questionId,
+        for: newAnswer.for,
+        userId: user.id
+      }
+    })
+
+    if (answer) {
+      return json({ success: true })
+    }
+    return json({ success: false, body: { error: 'unknown' } })
+  }
+
+  return json({ success: false, body: { error: 'unknown' } })
 })
 
 export default question

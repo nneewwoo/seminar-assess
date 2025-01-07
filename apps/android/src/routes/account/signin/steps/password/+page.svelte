@@ -66,8 +66,8 @@
         <ArrowE class="bg-transparent w-[20px] h-[20px]" />
       </button>
     </form>
-    <div class="flex-1 shadow-box">
-      {store.get("sesion-token")}
+    <div class="flex-1 shadow-box p-[20px]">
+      <p class="error">{passwordError}</p>
     </div>
   </div>
   <div class="w-full flex uppercase">

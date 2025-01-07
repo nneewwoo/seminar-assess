@@ -1,12 +1,16 @@
 <script lang="ts">
   import { Keys } from "$lib/constants";
-  import Check from "$lib/icons/Check.svelte";
+  import { Check } from "$lib/icons";
   import { db } from "$lib/localdb";
   import { online, store } from "$lib/store";
   import type { Seminar } from "$lib/types";
   import { useFetch } from "$lib/utils";
   import { error } from "@sveltejs/kit";
   import { v4 as uuidv4 } from "uuid";
+
+  let { data } = $props();
+
+  const { cycle } = data;
 
   let voted = $state(false);
   let selectedSeminarId = $state("");
@@ -58,8 +62,6 @@
     const formData = new FormData(event.target as HTMLFormElement);
     const choice = formData.get("choice") as string;
 
-    const cycle = await db.cycle.orderBy(":id").first();
-
     if (cycle) {
       const id = uuidv4();
       if (!$online) {
@@ -69,10 +71,6 @@
           cycleId: cycle.id,
           seminarId: choice,
           synced: false,
-        });
-
-        await db.seminars.update(choice, {
-          votedByUser: true,
         });
 
         await db.seminars
@@ -86,6 +84,26 @@
           id,
           cycleId: cycle.id,
           seminarId: choice,
+        });
+      }
+
+      await db.seminars.update(choice, {
+        votedByUser: true,
+      });
+
+      const participations = await db.participation.orderBy(":id").first();
+
+      if (participations) {
+        await db.participation.update(participations.id, {
+          voted: true,
+        });
+      } else {
+        await db.participation.add({
+          id: uuidv4(),
+          voted: true,
+          answeredPost: false,
+          answeredPre: false,
+          attended: false,
         });
       }
 
@@ -135,7 +153,7 @@
               cycleId: vote.cycleId,
               seminarId: vote.seminarId,
             });
-            await db.votes.update(vote.id, { synced: true });
+            await db.votes.clear();
           }
         }
       })();
@@ -217,7 +235,7 @@
     class="w-full active:bg-black active:text-white disabled:bg-transparent disabled:text-black/50 uppercase text-center shadow-box p-[20px]"
   >
     {#if voted}
-      Awaiting results
+      <span class="text-black/50">Awaiting results</span>
     {:else if !selectedSeminarId}
       Pick one
     {:else}

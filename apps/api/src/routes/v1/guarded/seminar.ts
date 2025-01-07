@@ -85,12 +85,12 @@ seminar.get(
 )
 
 seminar.post('/vote', async ({ req, get, json }) => {
-  type Request = {
+  type RequestData = {
     id: string
     seminarId: string
     cycleId: string
   }
-  const { id, seminarId, cycleId } = await req.json<Request>()
+  const { id, seminarId, cycleId } = await req.json<RequestData>()
 
   const user = get('user') as User
 
@@ -125,6 +125,7 @@ seminar.post('/vote', async ({ req, get, json }) => {
     await db.participation.create({
       data: {
         userId: user.id,
+        cycleId,
         voted: true
       }
     })

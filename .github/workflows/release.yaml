@@ -101,6 +101,9 @@ jobs:
         with:
           bun-version: latest
 
+      - name: install frontend dependencies
+        run: bun install
+
       - name: setup rust nightly
         uses: actions-rust-lang/setup-rust-toolchain@v1
 

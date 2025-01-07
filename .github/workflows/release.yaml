@@ -36,7 +36,9 @@ jobs:
           mkdir -p release && echo "$NEXT_VERSION" > release/version
 
       - name: setup bun
-        uses: over-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: install frontend dependencies
         run: bun install
@@ -94,14 +96,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: setup node
-        uses: actions/setup-node@v4
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 18
-          cache: pnpm
+          bun-version: latest
 
       - name: setup rust nightly
         uses: actions-rust-lang/setup-rust-toolchain@v1

@@ -17,6 +17,9 @@
     },
     "db:generate": {
       "cache": false
+    },
+    "@seminar-assess/android#build": {
+      "outputs": ["apps/android/dist/**"]
     }
   }
 }

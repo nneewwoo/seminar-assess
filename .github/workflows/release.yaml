@@ -1,0 +1,212 @@
+name: "Build"
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        type: choice
+        required: true
+        description: update type
+        default: patch
+        options:
+          - undefined
+          - patch
+          - minor
+          - major
+
+jobs:
+  build-sveltekit:
+    runs-on: ubuntu-latest
+    env:
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: consume vars
+        shell: bash
+        run: |
+          echo "bump=${{ github.event.inputs.bump || 'patch' }}" >> $GITHUB_ENV
+
+      - name: calculate next version
+        shell: bash
+        run: |
+          CURRENT_VERSION="$(curl -s "https://api.github.com/repos/nneewwoo/seminar-assess/tags" | jq -r 'if . == [] then "0.0.0" else .[0].name end' | sed 's/^v//')"
+          NEXT_VERSION=$(./scripts/next.sh "${CURRENT_VERSION}" "${{ env.bump }}")
+          echo "version=$NEXT_VERSION" >> $GITHUB_ENV
+          mkdir -p release && echo "$NEXT_VERSION" > release/version
+
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+
+      - name: install frontend dependencies
+        run: pnpm install
+
+      - name: build frontend
+        run: pnpm build:android -- --mode production
+
+      - name: upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: sveltekit-build
+          path: ./apps/android/build
+          retention-days: 1
+          if-no-files-found: error
+
+  build-tauri:
+    needs: build-sveltekit
+    env:
+      CARGO_TERM_COLOR: always
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "ubuntu-24.04"
+            mobile: true
+            android: true
+            args: ""
+
+    runs-on: ${{ matrix.platform }}
+
+    outputs:
+      platform: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: consume vars
+        shell: bash
+        run: |
+          echo "bump=${{ github.event.inputs.bump || 'patch' }}" >> $GITHUB_ENV
+
+      - name: calculate next version
+        shell: bash
+        run: |
+          CURRENT_VERSION="$(curl -s "https://api.github.com/repos/nneewwoo/seminar-assess/tags" | jq -r 'if . == [] then "0.0.0" else .[0].name end' | sed 's/^v//')"
+          NEXT_VERSION=$(./scripts/next.sh "${CURRENT_VERSION}" "${{ env.bump }}")
+          echo "version=$NEXT_VERSION" >> $GITHUB_ENV
+          mkdir -p release && echo "$NEXT_VERSION" > release/version
+
+      - name: install linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+
+      - name: setup rust nightly
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: setup java
+        if: matrix.mobile
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: setup android SDK
+        if: matrix.mobile
+        uses: android-actions/setup-android@v3
+
+      - name: setup android NDK
+        if: matrix.mobile
+        run: |
+          sdkmanager "ndk;28.0.12433566"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/28.0.12433566" >> $GITHUB_ENV
+
+      - name: setup android signing key
+        if: matrix.mobile
+        run: |
+          cd crates/seminar-assess-tauri/gen/android
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
+          echo "password=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
+          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sveltekit-build
+          path: ./apps/android/build
+
+      - name: install tauri-cli
+        run: cargo install tauri-cli@2.1.0
+
+      - name: build tauri
+        shell: bash
+        run: |
+          ./scripts/release.sh \
+            --dist                       "./release" \
+            --version                    "${{ env.version }}"
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ matrix.platform }}-${{ github.run_number }}"
+          path: release/
+          if-no-files-found: error
+
+  publish-release:
+    needs: build-tauri
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "ubuntu-24.04"
+            mobile: true
+            android: true
+            args: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: consume vars
+        shell: bash
+        run: |
+          echo "bump=${{ github.event.inputs.bump || 'patch' }}" >> $GITHUB_ENV
+
+      - name: calculate next version
+        shell: bash
+        run: |
+          CURRENT_VERSION="$(curl -s "https://api.github.com/repos/nneewwoo/seminar-assess/tags" | jq -r 'if . == [] then "0.0.0" else .[0].name end' | sed 's/^v//')"
+          NEXT_VERSION=$(./scripts/next.sh "${CURRENT_VERSION}" "${{ env.bump }}")
+          echo "version=$NEXT_VERSION" >> $GITHUB_ENV
+
+      - name: create release directory
+        run: mkdir -p release
+
+      - name: download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: "${{ matrix.platform }}-${{ github.run_number }}"
+          path: ./release
+
+      - name: list artifacts
+        run: ls -alR ./release
+
+      - name: create release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/')
+        with:
+          files: ./release/*
+          tag_name: v${{ env.version }}
+          name: "v${{ env.version }}"
+          body: |
+            Test release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -140,7 +140,11 @@
       </div>
     {:else}
       <div class="w-full h-full py-[20px] overflow-y-hidden">
-        <textarea name="answer" class="px-[20px] w-full h-full" bind:value
+        <textarea
+          placeholder="Write..."
+          name="answer"
+          class="px-[20px] placeholder:text-black/80 w-full h-full"
+          bind:value
         ></textarea>
       </div>
     {/if}

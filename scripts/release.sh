@@ -36,7 +36,7 @@ CONFIG_PATH=""
 DIST="release"
 
 function tauri() {
-  (cd "$PWD/.." && bunx tauri "$@")
+  (cd "$PWD/.." && bun tauri "$@")
 }
 
 while [[ $# -gt 0 ]]; do

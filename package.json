@@ -14,6 +14,7 @@
     "lint": "biome lint --write .",
     "format": "biome format --write .",
     "rustfmt": "cargo +nightly-2024-11-15 fmt -- --config-path rustfmt-nightly.toml",
+    "tauri": "bunx tauri",
     "build:android": "turbo run --filter @seminar-assess/android build --no-daemon"
   },
   "workspaces": ["apps/*", "packages/*"]

@@ -26,16 +26,23 @@ enum Exam {
   POST_TEST
 }
 
+enum Eval {
+  RATING
+  FEEDBACK
+}
+
 model User {
-  id       String    @id @default(uuid())
-  email    String    @unique
-  name     String    @map("name")
-  password String
-  phone    String?
-  role     UserRole  @default(USER)
-  sessions Session[]
-  votes    Vote[]
-  answers  Answer[]
+  id               String             @id @default(uuid())
+  email            String             @unique
+  name             String             @map("name")
+  password         String
+  phone            String?
+  role             UserRole           @default(USER)
+  sessions         Session[]
+  votes            Vote[]
+  answers          Answer[]
+  participation    Participation[]
+  evaluationAnswer EvaluationAnswer[]
 
   @@map("users")
 }
@@ -50,20 +57,21 @@ model Session {
 }
 
 model Cycle {
-  id      String    @id @default(uuid())
-  active  Boolean   @unique @default(true)
-  period  Period    @default(IDLE)
-  endsAt  DateTime  @map("ends_at")
-  Seminar Seminar[]
-  Vote    Vote[]
+  id           String          @id @default(uuid())
+  active       Boolean         @unique @default(true)
+  period       Period          @default(IDLE)
+  endsAt       DateTime        @map("ends_at")
+  seminar      Seminar[]
+  vote         Vote[]
+  articipation Participation[]
 
   @@map("cycles")
 }
 
 model Course {
-  id      String    @id @default(uuid())
-  name    String    @unique
-  Seminar Seminar[]
+  id       String    @id @default(uuid())
+  name     String    @unique
+  seminars Seminar[]
 
   @@map("courses")
 }
@@ -114,7 +122,7 @@ model Answer {
   option     Option   @relation(fields: [optionId], references: [id])
   for        Exam
 
-  @@unique([userId, questionId])
+  @@unique([userId, questionId, for])
   @@map("answers")
 }
 
@@ -131,10 +139,61 @@ model Vote {
   @@map("votes")
 }
 
+model Participation {
+  id           String  @id @default(uuid())
+  voted        Boolean @default(false)
+  answeredPre  Boolean @default(false) @map("answered_pre")
+  answeredPost Boolean @default(false) @map("answered_post")
+  attended     Boolean @default(false) @map("attended_seminar")
+  userId       String  @map("user_id")
+  user         User    @relation(fields: [userId], references: [id])
+  cycleId      String  @map("cycle_id")
+  cycle        Cycle   @relation(fields: [cycleId], references: [id])
+
+  @@unique([userId, cycleId])
+  @@map("participations")
+}
+
 model Otp {
   id      String @id @default(uuid())
   email   String @unique
   counter BigInt @default(0)
 
   @@map("otp_codes")
+}
+
+model Evaluation {
+  id          String               @id @default(uuid())
+  title       String
+  description String
+  type        Eval
+  questions   EvaluationQuestion[]
+  answers     EvaluationAnswer[]
+
+  @@map("evaluations")
+}
+
+model EvaluationQuestion {
+  id           String             @id @default(uuid())
+  text         String
+  evaluationId String             @map("evaluation_id")
+  evaluation   Evaluation         @relation(fields: [evaluationId], references: [id])
+  answers      EvaluationAnswer[]
+
+  @@map("evaluation_questions")
+}
+
+model EvaluationAnswer {
+  id           String             @id @default(uuid())
+  userId       String             @map("user_id")
+  user         User               @relation(fields: [userId], references: [id])
+  evaluationId String             @map("evaluation_id")
+  evaluation   Evaluation         @relation(fields: [evaluationId], references: [id])
+  questionId   String             @map("question_id")
+  question     EvaluationQuestion @relation(fields: [questionId], references: [id])
+  answer       String
+  type         Eval
+
+  @@unique([userId, questionId, evaluationId])
+  @@map("evaluation_answers")
 }

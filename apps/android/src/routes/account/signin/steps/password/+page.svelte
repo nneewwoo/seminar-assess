@@ -34,7 +34,7 @@
 
       if (response.success) {
         const { token, id } = response.body;
-        $store.set("session-token", token);
+        store.set("session-token", token);
         await db.session.add({ id, token });
         navigateTo("/guarded/init", undefined, { replaceState: true });
       } else {
@@ -66,8 +66,8 @@
         <ArrowE class="bg-transparent w-[20px] h-[20px]" />
       </button>
     </form>
-    <div class="flex-1 shadow-box">
-      {store.get("sesion-token")}
+    <div class="flex-1 shadow-box p-[20px]">
+      <p class="error">{passwordError}</p>
     </div>
   </div>
   <div class="w-full flex uppercase">

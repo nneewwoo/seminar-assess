@@ -25,16 +25,16 @@ export const createMapStore = (initial: Map<string, Any> = new Map()) => {
     })
   }
 
-  const results = derived(store, (map) => ({
+  const subscribe = (key: string) => store.subscribe((s) => s.get(key))
+
+  const _results = derived(store, (map) => ({
     keys: Array.from(map.keys()),
     values: Array.from(map.values()),
-    entries: Array.from(map.entries()),
-    set,
-    remove
+    entries: Array.from(map.entries())
   }))
 
   return {
-    subscribe: results.subscribe,
+    subscribe,
     set,
     get,
     remove
@@ -42,3 +42,5 @@ export const createMapStore = (initial: Map<string, Any> = new Map()) => {
 }
 
 export const store = createMapStore()
+
+export const online = writable<boolean>(true)

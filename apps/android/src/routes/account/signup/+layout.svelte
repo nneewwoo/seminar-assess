@@ -16,7 +16,7 @@
       <a
         class="p-[20px] w-fit uppercase h-[60px] shadow-box content-center"
         target="_blank"
-        href={`${WEB_URL}/terms-and-privacy`}
+        href={`${WEB_URL}/terms-of-service`}
         aria-label="Terms and Privacy link"
       >
         <ArrowNE class="bg-transparent w-[20px] h-[20px]" />

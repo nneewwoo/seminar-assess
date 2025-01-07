@@ -74,7 +74,7 @@
     </div>
   </div>
   <div class="w-full flex uppercase">
-    <div class="w-2/3 shadow-box p-[20px]"><p>Dont have an account?</p></div>
+    <div class="w-2/3 shadow-box p-[20px]"><p>Don’t have an account?</p></div>
     <div class="w-1/3 grid">
       <a href="/account/signup/steps/name"><span>Signup</span></a>
     </div>

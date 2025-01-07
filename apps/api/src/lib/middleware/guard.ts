@@ -1,16 +1,17 @@
 import type { Context, MiddlewareHandler, Next } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import * as auth from '../auth'
+import type { Variables } from '../types'
 
-const guard: MiddlewareHandler = async (context: Context, next: Next) => {
-  const { req, res } = context
-  const token = req.header('Authorization')?.split(' ')[1]
-
+const handleAuth = async (
+  context: Context<{ Variables: Variables }>,
+  token: string | null
+) => {
   if (!token) {
     context.set('user', null)
     context.set('session', null)
     throw new HTTPException(400, {
-      res,
+      res: context.res,
       message: 'Bad request',
       cause: 'Missing token'
     })
@@ -25,13 +26,30 @@ const guard: MiddlewareHandler = async (context: Context, next: Next) => {
     context.set('user', null)
     context.set('session', null)
     throw new HTTPException(401, {
-      res,
+      res: context.res,
       message: 'Unauthorized',
       cause: 'Invalid or expired token'
     })
   }
+}
 
+const guard: MiddlewareHandler = async (context, next) => {
+  await handleAuth(
+    context,
+    context.req.header('Authorization')?.split(' ')[1] || null
+  )
   await next()
 }
 
-export { guard }
+const withWsGuard =
+  (paths: string[]): MiddlewareHandler =>
+  async (context, next) => {
+    if (paths.includes(context.req.path)) {
+      await handleAuth(context, context.req.query().token || null)
+      await next()
+    } else {
+      await guard(context, next)
+    }
+  }
+
+export { guard, withWsGuard }

@@ -10,4 +10,7 @@ export const load: LayoutLoad = async () => {
   if (!session) {
     redirect(302, '/account/signin/steps/email')
   }
+
+  const cycle = await db.cycle.orderBy(':id').first()
+  return { session, cycle }
 }

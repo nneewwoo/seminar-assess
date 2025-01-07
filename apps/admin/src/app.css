@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+
+@config '../tailwind.config.ts';
+
+@layer utilities {
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/Inter.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+      U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+      U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-black font-inter leading-[20px] text-[13px] box-border font-[420] focus:outline-hidden focus:ring-0;
+    font-variation-settings: "opsz" 20;
+    font-feature-settings: "calt" 1, "dlig" 1, "case" 0, "tnum" 1, "ss01" 1,
+      "ss03" 1, "ss07" 1, "ss08" 1, "tnum" 1;
+  }
+
+  body {
+    @apply bg-[#d9dbf1] shadow-box;
+  }
+
+  a {
+    @apply active:bg-black active:text-white p-[20px] text-center uppercase w-full shadow-box;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    @apply h-[60px] shadow-box placeholder:text-black/50 p-[20px];
+  }
+
+  input:-webkit-autofill {
+    @apply bg-clip-text;
+  }
+
+  button {
+    @apply p-[20px] uppercase h-[60px] shadow-box content-center;
+  }
+
+  span {
+    @apply bg-transparent;
+  }
+
+  .error {
+    @apply text-[#9A031E];
+  }
+}

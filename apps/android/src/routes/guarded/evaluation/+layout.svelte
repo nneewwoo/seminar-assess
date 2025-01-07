@@ -11,8 +11,6 @@
       (answer) => !answer.synced && answer.answer !== "",
     );
 
-    console.log(unsyncedAnswers);
-
     if (unsyncedAnswers.length > 0) {
       unsyncedAnswers.forEach(async (answer) => {
         const response = await useFetch("POST", "/evaluation/answer", answer);

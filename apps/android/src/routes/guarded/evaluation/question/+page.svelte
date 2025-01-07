@@ -152,7 +152,7 @@
   <div class="w-full flex uppercase">
     <button
       type="reset"
-      class="p-[20px] w-1/2 uppercase shadow-box content-center"
+      class="p-[20px] w-1/2 uppercase shadow-box content-center active:text-white active:bg-black"
       onclick={() => {
         navigateTo(
           `/guarded/evaluation/question?index=${data.index + 1}&evaluationId=${data.evaluationId}`,

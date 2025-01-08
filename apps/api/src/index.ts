@@ -17,7 +17,7 @@ app.use(
   cors({
     origin:
       Bun.env.NODE_ENV === 'production'
-        ? ['http://tauri.localhost', 'https://admin.seminar-assess.tech']
+        ? ['http://tauri.localhost']
         : '*',
     allowMethods: ['GET', 'POST', 'OPTIONS'],
     allowHeaders: [

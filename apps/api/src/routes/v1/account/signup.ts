@@ -40,12 +40,8 @@ signup.post('/email', async ({ req, json }) => {
         })
       }
 
-      const baseUrl = new URL(req.url).origin
-
-      console.log(baseUrl)
-
       const response = await fetch(
-        `${baseUrl}/v1/account/security/otp/request`,
+        "https://api.serminar-assess.tech/v1/account/security/otp/request",
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

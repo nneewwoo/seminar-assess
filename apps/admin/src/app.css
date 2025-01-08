@@ -42,7 +42,7 @@
   }
 
   button {
-    @apply p-[20px] uppercase h-[60px] shadow-box content-center;
+    @apply active:bg-black active:text-white p-[20px] uppercase h-[60px] shadow-box content-center;
   }
 
   span {

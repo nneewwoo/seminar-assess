@@ -197,3 +197,11 @@ model EvaluationAnswer {
   @@unique([userId, questionId, evaluationId])
   @@map("evaluation_answers")
 }
+
+model TempLink {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+
+  @@map("temp_links")
+}

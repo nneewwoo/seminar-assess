@@ -7,7 +7,6 @@
     "start": "NODE_ENV=production bun dist/index.js"
   },
   "dependencies": {
-    "@elysiajs/cors": "^1.2.0",
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
     "@oslojs/otp": "^1.1.0",

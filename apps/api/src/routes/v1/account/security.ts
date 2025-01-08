@@ -23,8 +23,8 @@ security.post('/otp/request', async ({ req, json }) => {
     code = otp.generate(email, newOtp.counter)
   }
 
-  const MAILGUN_API_KEY = Bun.env.MAILGUN_API_KEY
-  const MAILGUN_DOMAIN = Bun.env.MAILGUN_DOMAIN
+  const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY
+  const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN
 
   const form = new FormData()
   form.append('from', `Seminar Assess <no-reply@${MAILGUN_DOMAIN}>`)

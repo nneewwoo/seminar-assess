@@ -55,7 +55,7 @@ question.get('/list', async ({ json }) => {
   })
 
   if (questions && questions.length > 0) {
-    return json({ success: true, body: questions })
+    return json({ success: true, body: {questions: questions.sort(() => Math.random() - 0.5)} })
   }
 
   return json({

@@ -3,7 +3,7 @@ import {
   encodeBase32LowerCaseNoPadding,
   encodeHexLowerCase
 } from '@oslojs/encoding'
-import type { Session } from '@prisma/client'
+import type { Session } from '@seminar-assess/db'
 import { db } from '@seminar-assess/db'
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24

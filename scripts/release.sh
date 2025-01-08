@@ -76,6 +76,7 @@ jq '.version="'"$VERSION"'"' "$CONFIG_PATH" >"$TMP_DIR/tauri.conf.json"
 
 tauri android build \
   --apk \
+  --split-per-abi \
   --config "$TMP_DIR/tauri.conf.json"
 
 BUNDLE_DIR=$(readlink -f "$PWD/../crates/seminar-assess-tauri/gen/android/app/build/outputs/")
@@ -85,9 +86,15 @@ mkdir -p "$RELEASE_DIR"
 APKS="$(find "$BUNDLE_DIR/apk" -name "*release.apk")"
 if [ -n "$APKS" ]; then
   for APK in $APKS; do
-    cp "$APK" "$RELEASE_DIR"
+    BASENAME="$(basename "$APK")"
+    NEW_NAME=$(echo "$BASENAME" | sed -E 's/(.*)-arm64-release\.apk$/seminar-assess-arm64.apk/')
+    NEW_NAME=$(echo "$NEW_NAME" | sed -E 's/(.*)-arm-release\.apk$/seminar-assess-arm.apk/')
+    NEW_NAME=$(echo "$NEW_NAME" | sed -E 's/(.*)-x86_64-release\.apk$/seminar-assess-x86_64.apk/')
+    NEW_NAME=$(echo "$NEW_NAME" | sed -E 's/(.*)-x86-release\.apk$/seminar-assess-x86.apk/')
+    NEW_NAME=$(echo "$NEW_NAME" | sed -E 's/(.*)-universal-release\.apk$/seminar-assess-universal.apk/')
+    cp "$APK" "$RELEASE_DIR/$NEW_NAME"
     info "built:"
-    info "	- $RELEASE_DIR/$(basename "$APK")"
+    info "	- $RELEASE_DIR/$NEW_NAME"
   done
 else
   error "No APKs found in $BUNDLE_DIR"

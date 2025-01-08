@@ -1,4 +1,3 @@
-import useLocalStorage from './localstorage'
 import { store } from '$lib/store'
 import { db } from '$lib/localdb'
 

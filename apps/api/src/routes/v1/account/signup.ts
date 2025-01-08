@@ -109,10 +109,57 @@ signup.post('/password', async ({ req, json }) => {
   })
 
   if (newUser) {
+    const cycle = await db.cycle.findUnique({where: {active: true}})
+
+    if (cycle) {
+      await db.participation.create({data: {
+        userId: newUser.id,
+        'cycleId': cycle.id
+      }})
+    }
     return json({ success: true })
   }
 
   return json({ success: false, body: { error: 'unknown' } })
+})
+
+signup.get('/gen-link/:token', async ({ req, json }) => {
+  const { token } = req.param()
+
+  const tempLink = await db.tempLink.create({
+    data: {
+      token,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 72)
+    }
+  })
+
+  if (tempLink) {
+    return json({
+      success: true,
+      body: {
+        link: `${Bun.env.NODE_ENV === 'production' ? 'https' : 'http'}://${Bun.env.DOMAIN_NAME}/account/signup/${encodeURIComponent(token)}`
+      }
+    })
+  }
+
+  return json({ success: false, body: { error: 'unknown' } })
+})
+
+signup.get('/verify-link/:token', async ({ req, json }) => {
+  const { token } = req.param()
+
+  const tempLink = await db.tempLink.findUnique({ where: { token } })
+
+  if (tempLink) {
+    if (new Date(tempLink.expiresAt) > new Date()) {
+      return json({ success: true })
+    }
+    await db.tempLink.delete({ where: { token } })
+
+    return json({ success: false, body: { error: 'Link has expired' } })
+  }
+
+  return json({ success: false, body: { error: 'Link not found' } })
 })
 
 export default signup

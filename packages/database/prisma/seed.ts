@@ -48,19 +48,23 @@ const main = async () => {
     }
   ]
 
+  const cycle = await prisma.cycle.create({
+    data: {
+      endsAt: new Date(Date.now() + 1000 * 60 * 5)
+    }
+  })
+
   const createdUsers = []
   for (const user of users) {
     const createdUser = await prisma.user.create({
       data: user
     })
+    await prisma.participation.create({data: {
+      userId: createdUser.id,
+      cycleId: cycle.id
+    }})
     createdUsers.push(createdUser)
   }
-
-  const cycle = await prisma.cycle.create({
-    data: {
-      endsAt: new Date('2025-01-31T23:59:59.999Z')
-    }
-  })
 
   const courses = [
     'Bachelor of Science in Computer Science',

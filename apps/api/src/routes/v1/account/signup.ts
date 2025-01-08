@@ -42,6 +42,8 @@ signup.post('/email', async ({ req, json }) => {
 
       const baseUrl = new URL(req.url).origin
 
+      console.log(baseUrl)
+
       const response = await fetch(
         `${baseUrl}/v1/account/security/otp/request`,
         {

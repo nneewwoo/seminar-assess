@@ -25,13 +25,13 @@ class Database extends Dexie {
   constructor(dbName: string) {
     super(dbName)
 
-    this.version(8).stores({
-      cycle: 'id, period, ends_at',
+    this.version(10).stores({
+      cycle: 'id, period, starts_at, ends_at',
       session: 'id, token',
       seminars:
         'id, title, description, course, number_of_votes, voted_by_user',
-      questions: 'id,text,options',
-      votes: 'id, seminar_id, cycle_id, synced',
+      questions: 'id, text, seminar_id, options',
+      votes: 'id, seminar_id, cycle_id, rank, synced, seminar',
       participation: 'id, voted, answered_pre, answered_post, attended',
       answers: 'id, question_id, option_id, for, synced',
       evaluations: 'id, title, description, type, questions',

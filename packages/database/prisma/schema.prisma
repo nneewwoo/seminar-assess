@@ -60,6 +60,7 @@ model Cycle {
   id           String          @id @default(uuid())
   active       Boolean         @unique @default(true)
   period       Period          @default(IDLE)
+  startsAt     DateTime        @map("starts_at")
   endsAt       DateTime        @map("ends_at")
   seminar      Seminar[]
   vote         Vote[]
@@ -134,6 +135,7 @@ model Vote {
   seminar   Seminar @relation(fields: [seminarId], references: [id])
   cycleId   String  @map("cycle_id")
   cycle     Cycle   @relation(fields: [cycleId], references: [id])
+  rank      Int     @default(0)
 
   @@unique([userId, seminarId, cycleId])
   @@map("votes")

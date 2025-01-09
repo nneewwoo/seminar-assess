@@ -45,7 +45,7 @@ const withWsGuard =
   (paths: string[]): MiddlewareHandler =>
   async (context, next) => {
     if (paths.includes(context.req.path)) {
-      await handleAuth(context, context.req.query().token || null)
+      // await handleAuth(context, context.req.query().token || null)
       await next()
     } else {
       await guard(context, next)

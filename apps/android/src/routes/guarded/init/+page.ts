@@ -7,7 +7,8 @@ import type {
   Period,
   Question,
   Participation,
-  Evaluation
+  Evaluation,
+  Vote
 } from '$lib/types'
 import { db } from '$lib/localdb'
 import { v4 as uuiv4 } from 'uuid'
@@ -28,19 +29,37 @@ const update = async (period: Period) => {
     case 'VOTING':
       {
         await db.seminars.clear()
-        const newSeminarList = await useFetch<Seminar[]>('GET', '/seminar')
-        await db.seminars.bulkAdd(newSeminarList.body)
+        await db.votes.clear()
+        const newVotesList = await useFetch<Vote[]>('GET', '/seminar')
+        console.log(newVotesList)
+        for (let i = 0; i < newVotesList.body.length; i++) {
+          await db.votes.add({
+            id: newVotesList.body[i].id,
+            seminarId: newVotesList.body[i].seminarId,
+            cycleId: newVotesList.body[i].cycleId,
+            rank: Number.isNaN(newVotesList.body[i].rank)
+              ? 0
+              : newVotesList.body[i].rank,
+            seminar: newVotesList.body[i].seminar,
+            synced: false
+          })
+        }
       }
       break
     case 'PRE_TEST':
     case 'POST_TEST':
       {
         await db.questions.clear()
-        const newQuestionList = await useFetch<Question[]>(
+        const newQuestionList = await useFetch<{ questions: Question[] }>(
           'GET',
           '/question/list'
         )
-        await db.questions.bulkAdd(newQuestionList.body)
+
+        console.log(newQuestionList)
+
+        for (const question of newQuestionList.body.questions) {
+          await db.questions.add(question)
+        }
 
         if (period === 'POST_TEST') {
           await db.participation.clear()
@@ -77,6 +96,8 @@ export const load: PageLoad = async ({ parent }) => {
 
       if (currentCycle.body.id !== storedCycle.id) {
         await db.cycle.clear()
+        await db.answers.clear()
+        await db.evaluationAnswers.clear()
         await db.seminars.clear()
         await db.questions.clear()
         await db.votes.clear()
@@ -94,7 +115,9 @@ export const load: PageLoad = async ({ parent }) => {
       if (currentCycle.body.period !== storedCycle.period) {
         await update(currentCycle.body.period)
         await db.cycle.update(storedCycle.id, {
-          period: currentCycle.body.period
+          period: currentCycle.body.period,
+          startsAt: currentCycle.body.startsAt,
+          endsAt: currentCycle.body.endsAt
         })
 
         return redirect(302, to(currentCycle.body.period))
@@ -107,8 +130,8 @@ export const load: PageLoad = async ({ parent }) => {
   if (!currentCycle || !currentCycle.success) {
     throw error(500, { message: 'An unknown error occured' })
   }
-
   const participation = await useFetch<Participation>('GET', '/participation')
+  await db.participation.clear()
 
   if (participation.success) {
     await db.participation.add(participation.body)

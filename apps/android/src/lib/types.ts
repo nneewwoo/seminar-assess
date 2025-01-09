@@ -11,6 +11,7 @@ export type Period =
 export interface Cycle {
   id: string
   period: Period
+  startsAt: Date
   endsAt: Date
 }
 
@@ -29,15 +30,15 @@ export interface Seminar {
   title: string
   description: string
   course: Course
-  numberOfVotes: number
-  votedByUser: boolean
 }
 
 export interface Vote {
   id: string
   seminarId: string
   cycleId: string
+  rank: number
   synced: boolean
+  seminar: Seminar
 }
 
 export interface QuestionOption {
@@ -49,6 +50,7 @@ export interface QuestionOption {
 export interface Question {
   id: string
   text: string
+  seminarId: Seminar['id']
   options: QuestionOption[]
 }
 

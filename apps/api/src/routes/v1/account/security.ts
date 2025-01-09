@@ -141,7 +141,7 @@ Seminar Assess
           `
   )
 
-  if (Bun.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development') {
     console.log('DEV OTP', code)
     return json({ success: true })
   }

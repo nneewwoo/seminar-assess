@@ -15,14 +15,6 @@ const main = async () => {
   await prisma.evaluationQuestion.deleteMany()
   await prisma.evaluation.deleteMany()
 
-
-  const cycle = await prisma.cycle.create({
-    data: {
-      endsAt: new Date(Date.now() + 1000 * 60 * 5)
-    }
-  })
-
-
   type Evaluation = {
     title: string
     type: 'RATING' | 'FEEDBACK'

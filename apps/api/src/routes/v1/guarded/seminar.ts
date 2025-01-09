@@ -1,4 +1,4 @@
-import { db, type Session, type User } from '@seminar-assess/db'
+import { db, type Session, type User, type Vote } from '@seminar-assess/db'
 import type { ServerWebSocket } from 'bun'
 import { Hono } from 'hono'
 import { createBunWebSocket } from 'hono/bun'
@@ -17,36 +17,34 @@ seminar.get('/', async ({ get, json }) => {
   }
 
   const seminars = await db.seminar.findMany({
-    where: {
-      cycle: {
-        active: true
-      }
-    },
-    include: {
-      course: true,
-      votes: {
-        where: {
-          userId: session.userId
-        }
-      },
-      _count: {
-        select: {
-          votes: true
-        }
-      }
-    }
+    where: { cycle: { active: true } }
   })
 
+  const votes: Vote[] = []
+
   if (seminars) {
-    const list = seminars.map((seminar) => ({
-      id: seminar.id,
-      title: seminar.title,
-      description: seminar.description,
-      course: seminar.course,
-      numberOfVotes: seminar._count.votes,
-      votedByUser: seminar.votes.length > 0
-    }))
-    return json({ success: true, body: list })
+    const draftedVotes = await db.vote.findMany({
+      where: { userId: session.userId },
+      include: { seminar: true }
+    })
+
+    if (draftedVotes.length > 0) {
+      return json({ success: true, body: draftedVotes })
+    }
+    for (const seminar of seminars) {
+      const newVote = await db.vote.create({
+        data: {
+          userId: session.userId,
+          seminarId: seminar.id,
+          cycleId: seminar.cycleId,
+          rank: 0
+        },
+        include: { seminar: true }
+      })
+      votes.push(newVote)
+    }
+    console.log(votes)
+    return json({ success: true, body: votes })
   }
 
   return json({ success: false, body: { error: 'unknown' } })
@@ -89,50 +87,79 @@ seminar.post('/vote', async ({ req, get, json }) => {
     id: string
     seminarId: string
     cycleId: string
-  }
-  const { id, seminarId, cycleId } = await req.json<RequestData>()
+    rank: number
+  }[]
+  const newVote = await req.json<RequestData>()
 
   const user = get('user') as User
 
-  const seminar = await db.seminar.update({
-    where: { id: seminarId },
-    data: {
-      votes: {
-        create: {
-          id,
+  for (const vote of newVote) {
+    const synced = await db.vote.update({
+      where: {
+        userId_seminarId_cycleId: {
           userId: user.id,
-          cycleId
+          seminarId: vote.seminarId,
+          cycleId: vote.cycleId
         }
+      },
+      data: {
+        rank: vote.rank
       }
-    },
-    include: {
-      _count: {
-        select: {
-          votes: true
-        }
+    })
+    if (!synced) {
+      return json({ success: false, body: { error: 'unknown' } })
+    }
+  }
+
+  const seminars = await db.seminar.findMany({
+    where: { cycleId: newVote[0].cycleId },
+    include: { votes: true }
+  })
+
+  const rankedSeminars = seminars
+    .map((seminar) => {
+      const totalRank = seminar.votes.reduce((sum, vote) => sum + vote.rank, 0)
+      const averageRank = totalRank / seminar.votes.length
+      return {
+        id: seminar.id,
+        title: seminar.title,
+        description: seminar.description,
+        rank: averageRank
       }
+    })
+    .sort((a, b) => a.rank - b.rank)
+  let currentRank = 0
+  let tieCount = 0
+  let previousTotalRank: number | null = null
+
+  const rankedWithPosition = rankedSeminars.map((seminar, _index) => {
+    if (seminar.rank !== previousTotalRank) {
+      currentRank += 1 + tieCount // Increment by 1 + the number of tied ranks
+      tieCount = 0 // Reset tie count for the new rank
+    } else {
+      tieCount++ // Increment tie count if ranks are the same
+    }
+
+    previousTotalRank = seminar.rank
+
+    return {
+      ...seminar,
+      position: currentRank
     }
   })
 
-  if (seminar) {
-    server.publish(
-      'votes',
-      JSON.stringify({
-        id: seminar.id,
-        numberOfVotes: seminar._count.votes
-      })
-    )
-    await db.participation.create({
-      data: {
-        userId: user.id,
-        cycleId,
-        voted: true
-      }
-    })
+  server.publish('votes', JSON.stringify(rankedWithPosition))
 
-    return json({ success: true })
-  }
-  return json({ success: false, body: { error: 'unknown' } })
+  await db.participation.update({
+    where: {
+      userId_cycleId: { userId: user.id, cycleId: newVote[0].cycleId }
+    },
+    data: {
+      voted: true
+    }
+  })
+
+  return json({ success: true })
 })
 
 export default seminar

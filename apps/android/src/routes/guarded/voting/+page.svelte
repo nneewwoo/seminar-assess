@@ -1,11 +1,12 @@
 <script lang="ts">
   import { Keys } from "$lib/constants";
-  import { Check } from "$lib/icons";
+  import { Check, ChevronDown, ChevronUp } from "$lib/icons";
   import { db } from "$lib/localdb";
   import { online, store } from "$lib/store";
-  import type { Seminar } from "$lib/types";
+  import type { Seminar, Vote } from "$lib/types";
   import { useFetch } from "$lib/utils";
   import { error } from "@sveltejs/kit";
+  import { fly, slide } from "svelte/transition";
   import { v4 as uuidv4 } from "uuid";
 
   let { data } = $props();
@@ -13,17 +14,20 @@
   const { cycle } = data;
 
   let voted = $state(false);
-  let selectedSeminarId = $state("");
   let countdown = $state("");
-  let seminars = db.seminarsSubscription;
+
+  let seminars = $state([] as Vote[]);
 
   const userVoted = async () =>
-    db.seminars
+    await db.votes
       .orderBy(":id")
       .toArray()
-      .then((seminars) => {
-        seminars.forEach((seminar) => {
-          if (seminar.votedByUser) voted = true;
+      .then((vote) => {
+        vote.forEach((v) => {
+          if (v.rank > 0) {
+            voted = true;
+            return;
+          }
         });
       });
 
@@ -39,7 +43,7 @@
 
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         const hours = Math.floor(
-          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
         );
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
@@ -47,7 +51,13 @@
         countdown = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 
         if (distance > 0) {
-          countdown = `${days} days ${hours}H:${minutes < 10 ? "0" : ""}${minutes}M:${seconds < 10 ? "0" : ""}${seconds}S`;
+          if (distance < 1000 * 60 * 60 * 24) {
+            countdown = `${hours}H:${minutes < 10 ? "0" : ""}${minutes}M:${seconds < 10 ? "0" : ""}${seconds}S`;
+          } else if (distance < 1000 * 60 * 60) {
+            countdown = `${minutes}M:${seconds < 10 ? "0" : ""}${seconds}S`;
+          } else {
+            countdown = `${days} days ${hours}H:${minutes < 10 ? "0" : ""}${minutes}M:${seconds < 10 ? "0" : ""}${seconds}S`;
+          }
         } else {
           clearInterval(interval);
           countdown = "EXPIRED";
@@ -55,191 +65,170 @@
       }, 1000);
       return;
     }
-    throw error(500, { message: "An unknown error occured1." });
+    throw error(500, { message: "An unknown error occured." });
   };
 
-  const handleSubmit = async (event: SubmitEvent) => {
-    const formData = new FormData(event.target as HTMLFormElement);
-    const choice = formData.get("choice") as string;
+  const handleSubmit = async () => {
+    console.log("Reached 1");
+    seminars = seminars.map((seminar, i) => ({
+      ...seminar,
+      rank: i + 1,
+    }));
 
-    if (cycle) {
-      const id = uuidv4();
-      if (!$online) {
-        await db.votes.clear();
-        await db.votes.add({
-          id,
-          cycleId: cycle.id,
-          seminarId: choice,
-          synced: false,
-        });
+    await db.votes.bulkUpdate(
+      seminars.map((seminar, i) => ({
+        key: seminar.id,
+        changes: { rank: seminar.rank },
+      }))
+    );
 
-        await db.seminars
-          .where(":id")
-          .equals(choice)
-          .modify((seminar) => {
-            seminar.numberOfVotes = (seminar.numberOfVotes || 0) + 1;
-          });
-      } else {
-        await useFetch("POST", "/seminar/vote", {
-          id,
-          cycleId: cycle.id,
-          seminarId: choice,
-        });
+    if ($online) {
+      const synced = await useFetch("POST", "/seminar/vote", seminars);
+
+      if (synced.success) {
+        await db.votes.bulkUpdate(
+          seminars.map((seminar) => ({
+            key: seminar.id,
+            changes: { synced: true },
+          }))
+        );
       }
-
-      await db.seminars.update(choice, {
-        votedByUser: true,
-      });
-
-      const participations = await db.participation.orderBy(":id").first();
-
-      if (participations) {
-        await db.participation.update(participations.id, {
-          voted: true,
-        });
-      } else {
-        await db.participation.add({
-          id: uuidv4(),
-          voted: true,
-          answeredPost: false,
-          answeredPre: false,
-          attended: false,
-        });
-      }
-
-      voted = true;
-
-      return;
     }
-    throw error(500, { message: "An unknown error occured2." });
+    await db.participation.update(cycle!.id, { voted: true });
+
+    voted = true;
   };
 
   $effect(() => {
+    getSeminars();
     handleCountdown();
     userVoted();
   });
 
   $effect(() => {
     if ($online) {
-      const socket = new WebSocket(
-        `${import.meta.env.VITE_API_URL_WS}/seminar/vote/ws?token=${store.get(Keys.SESSION_TOKEN)}`,
-      );
-
-      socket.onopen = (_event: WebSocketEventMap["open"]) => {
-        console.info("WebSocket client connected");
-      };
-
-      socket.onerror = (event: WebSocketEventMap["error"]) => {
-        console.error("WebSocket error:", event);
-      };
-
-      socket.onclose = (_event: WebSocketEventMap["close"]) => {
-        console.info("WebSocket client disconnected");
-      };
-
-      socket.onmessage = async (event: WebSocketEventMap["message"]) => {
-        const data = JSON.parse(event.data) as { id: string } & Partial<
-          Omit<Seminar, "id">
-        >;
-        await db.seminars.update(data.id, data);
-      };
-
       (async () => {
-        const votes = await db.votes.filter((vote) => !vote.synced).toArray();
+        const votes = await db.votes
+          .filter((vote) => !vote.synced && vote.rank > 0)
+          .toArray();
         if (votes.length > 0) {
           for (const vote of votes) {
-            await useFetch("POST", "/seminar/vote", {
+            const synced = await useFetch("POST", "/seminar/vote", {
               id: vote.id,
               cycleId: vote.cycleId,
               seminarId: vote.seminarId,
             });
-            await db.votes.clear();
+            if (synced.success) {
+              await db.votes.update(vote.id, { synced: true });
+            }
           }
         }
       })();
-
-      return () => {
-        socket.close();
-      };
     }
   });
+
+  const getSeminars = async () => {
+    const unsorted = await db.votes.orderBy(":id").toArray();
+    seminars = unsorted.sort((a, b) => a.rank - b.rank);
+  };
+
+  const moveSeminarUp = async (index: number) => {
+    if (index > 0) {
+      const newSeminars = [...seminars];
+      const temp = newSeminars[index];
+      newSeminars[index] = newSeminars[index - 1];
+      newSeminars[index - 1] = temp;
+      seminars = newSeminars;
+    }
+  };
+
+  const moveSeminarDown = async (index: number) => {
+    if (index < seminars.length - 1) {
+      const newSeminars = [...seminars];
+      const temp = newSeminars[index];
+      newSeminars[index] = newSeminars[index + 1];
+      newSeminars[index + 1] = temp;
+      seminars = newSeminars;
+    }
+  };
 </script>
 
-<form
-  class="shadow-box w-full h-full flex flex-col border-b"
-  onsubmit={handleSubmit}
->
+<div class="shadow-box w-full h-full flex flex-col border-b">
   <div class="h-full flex shadow-box flex-col overflow-y-auto">
     <div
       class="w-full shadow-box uppercase min-h-[200px] p-[20px] content-center"
     >
+      {#if countdown !== "EXPIRED" && !voted}
+        <h1>
+          What interests you the most? Rank the topics from 1 (your top choice)
+          to the rest
+        </h1>
+      {/if}
       <h1>
         {countdown === "EXPIRED"
           ? "Voting period has ended"
           : `Voting closes in ${countdown}`}
       </h1>
     </div>
-    <div class="shadow-box flex flex-col">
-      {#each $seminars as seminar}
-        <label class="group w-full">
-          <input
-            type="radio"
-            name="choice"
-            value={seminar.id}
-            class="hidden peer"
-            disabled={voted}
-            checked={seminar.votedByUser}
-            onchange={() => {
-              selectedSeminarId = seminar.id;
-            }}
-          />
+    <div class="shadow-box flex flex-col overflow-x-hidden">
+      {#each seminars as seminar, i}
+        <div class="group w-full">
           <div class="peer-checked:bg-black flex shadow-box group">
             <div
               class={`w-fit bg-transparent group-peer-checked:text-white flex items-center justify-center p-[20px]`}
             >
-              {#if voted}
-                <div class="bg-transparent group-peer-checked:text-white">
-                  <div class="bg-transparent">
-                    <p class="uppercase bg-transparent text-center">
-                      {seminar.numberOfVotes}
-                    </p>
-                  </div>
-                  <div class="bg-transparent">
-                    <span>votes</span>
-                  </div>
-                </div>
-              {:else}
-                <Check
-                  class="w-[20px] text-transparent group-peer-checked:text-white bg-transparent h-[20px]"
-                />
-              {/if}
+              <strong class="uppercase bg-transparent text-center">
+                {i + 1}
+              </strong>
             </div>
-            <div
-              class="bg-transparent group-peer-checked:text-white pl-0 p-[20px]"
-            >
-              <div class="bg-transparent">
-                <p class="uppercase bg-transparent">{seminar.title}</p>
+            {#key seminar.seminar.id}
+              <div
+                in:slide={{ axis: "y" }}
+                class="truncate w-full transition transform group-peer-checked:text-white pl-0 p-[20px]"
+              >
+                <div class="bg-transparent">
+                  <p class="uppercase bg-transparent">
+                    {seminar.seminar.title}
+                  </p>
+                </div>
+                <div class="bg-transparent">
+                  <span>{seminar.seminar.description}</span>
+                </div>
               </div>
-              <div class="bg-transparent">
-                <span>{seminar.description}</span>
-              </div>
+            {/key}
+            <div class="flex flex-col w-fit">
+              <button
+                type="button"
+                onclick={() => moveSeminarUp(i)}
+                disabled={i === 0 || voted}
+                class="active:bg-black disabled:pointer-events-none disabled:text-black/50 active:text-white h-[40px] py-0 text-black"
+              >
+                <ChevronUp class="w-[20px] h-[20px]" />
+              </button>
+              <button
+                type="button"
+                onclick={() => moveSeminarDown(i)}
+                disabled={i === seminars.length - 1 || voted}
+                class="active:bg-black disabled:pointer-events-none disabled:text-black/50 active:text-white h-[40px] py-0 text-black"
+              >
+                <ChevronDown class="w-[20px] h-[20px]" />
+              </button>
             </div>
           </div>
-        </label>
+        </div>
       {/each}
     </div>
   </div>
   <button
     type="submit"
-    disabled={!selectedSeminarId}
+    onclick={handleSubmit}
+    disabled={voted}
     class="w-full active:bg-black active:text-white disabled:bg-transparent disabled:text-black/50 uppercase text-center shadow-box p-[20px]"
   >
     {#if voted}
       <span class="text-black/50">Awaiting results</span>
-    {:else if !selectedSeminarId}
-      Pick one
     {:else}
-      Cast your vote
+      Submit
     {/if}
   </button>
-</form>
+</div>
